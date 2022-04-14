@@ -8,7 +8,22 @@ const scheduler = {
 }
 
 scheduler.add = (expr, handle, option={}) => {
-    const cronjob = new CronJob(expr, handle)
+
+    const wrap = () => {
+        try {
+            if (handle.constructor.name === 'AsyncFunction') {
+                handle().catch((error) => {
+                    console.error('scheduler: error', error)
+                })
+            } else {
+                handle()
+            }
+        } catch (error) {
+            console.error('scheduler: error', error)
+        }
+    }
+
+    const cronjob = new CronJob(expr, wrap)
 
     if (option.env && option.env.split(' ').indexOf(config.env) === -1) {
         return
@@ -16,7 +31,7 @@ scheduler.add = (expr, handle, option={}) => {
 
     scheduler.jobs.push({
         expr,
-        handle,
+        handle: wrap,
         cronjob,
     })
 
