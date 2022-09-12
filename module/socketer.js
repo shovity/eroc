@@ -1,6 +1,10 @@
 const config = require('./config')
 const requester = require('./requester')
 
+
+check(config.websocket_client, 'Missing config.websocket_client')
+check(config.websocket_emitter_hook, 'Missing config.websocket_emitter_hook')
+
 const socketer = {
     setting: {
         client: config.websocket_client,
@@ -42,5 +46,6 @@ socketer.emit = async (event, data, option={}) => {
 
     return await requester.post(setting.hook, body)
 }
+
 
 module.exports = socketer

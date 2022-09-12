@@ -35,7 +35,7 @@ cacher.middle = (option) => {
             res.append('cacher', 'disable')
         }
 
-        res.u.listen('success', (data) => {
+        res.u.on('success', (data) => {
             rediser.set(key, data)
             rediser.expire(key, option.expire)
         })

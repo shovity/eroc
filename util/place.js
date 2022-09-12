@@ -22,10 +22,10 @@ util.refine = (place) => {
         })
 
         place.components = place.address_components
-        .map((c) => {
-            return c.long_name.replace(/tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã/gi, '').trim()
-        })
-        .reverse()
+            .map((c) => {
+                return c.long_name.replace(/tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã/gi, '').trim()
+            })
+            .reverse()
     }
     
     return place

@@ -1,7 +1,7 @@
 const epxress = require('express')
 const httpProxy = require('http-proxy')
 
-const config = require('../config')
+const config = require('./config')
 
 
 const X_PROXY_KEY = 'x-proxy-forward-portal'

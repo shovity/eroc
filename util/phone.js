@@ -1,6 +1,6 @@
 const phone = {}
 
-phone.refinePhoneNumber = (pn='') => {
+phone.refine = (pn='') => {
     pn = pn.replace(/[^0-9]/g, '')
 
     if (pn.startsWith('84')) {

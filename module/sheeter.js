@@ -6,7 +6,8 @@ const { GoogleSpreadsheet } = require('google-spreadsheet')
 
 const config = require('./config')
 
-!config.sheeter_credentials && console.error('sheeter: missing config.sheeter_credentials')
+
+check(config.sheeter_credentials, 'Missing config.sheeter_credentials')
 
 const sheeter = {
 

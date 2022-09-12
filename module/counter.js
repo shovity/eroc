@@ -2,9 +2,8 @@ const mongoose = require('mongoose')
 
 
 const counter = {}
-const Schema = mongoose.Schema
 
-const schema = new Schema(
+const schema = new mongoose.Schema(
     {
         key: String,
         value: Number,
@@ -16,7 +15,7 @@ const schema = new Schema(
 
 schema.index({ key: 1 })
 
-counter.Counter = mongoose.model('Counter', schema)
+counter.Counter = mongoose.model('ErocCounter', schema)
 
 counter.get = async (key) => {
     const c = await counter.Counter.findOneAndUpdate(

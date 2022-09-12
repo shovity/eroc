@@ -2,6 +2,8 @@ const requester = require('./requester')
 const config = require('./config')
 
 
+check(config.slacker_token, 'Missing  config.slacker_token')
+
 const slacker = {
 
     setting: {
@@ -49,4 +51,3 @@ slacker.send = async (message, option={}) => {
 
 
 module.exports = slacker
-
