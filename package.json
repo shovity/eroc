@@ -1,6 +1,6 @@
 {
   "name": "eroc",
-  "version": "1.6.9",
+  "version": "2.0.0",
   "main": "index.js",
   "author": "Shovity <shovity@gmail.com",
   "license": "MIT",
@@ -8,7 +8,6 @@
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
-    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0",
     "express-list-endpoints": "^5.0.0",

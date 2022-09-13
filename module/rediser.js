@@ -3,18 +3,18 @@ const redis = require('redis')
 const config = require('./config')
 
 
-check(config.rediser_uri, 'Missing config.rediser_uri')
+check(config.redis_uri, 'Missing config.redis_uri')
 
 const rediser = {
     client: redis.createClient({
-        url: config.rediser_uri,
+        url: config.redis_uri,
     }),
 }
 
 const client = rediser.client
 
 client.on('connect', () => {
-    console.log(`rediser: 🧼 Connected ${config.rediser_uri}`)
+    console.log(`rediser: 🍉 Connected - ${config.redis_uri}`)
 })
 
 rediser.cmd = async (...arg) => {
