@@ -9,5 +9,5 @@ vanguard.detect = async (req, res, next) => {
     
 
 
-    next()``
+    next()
 }

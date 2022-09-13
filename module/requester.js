@@ -56,13 +56,7 @@ requester.fetch = ({ url, method, body, param, option }) => {
 
             url = `http://${setting.apiBase || service}:3000/api/${service}/${endpoint}`
 
-            if (param) {
-                param.client = config.client
-            }
-
-            if (body) {
-                body.client = config.client
-            }
+            arg.headers['eroc-secret'] = ''
         } else {
 
             // add base api backend
