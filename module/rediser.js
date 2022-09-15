@@ -5,130 +5,76 @@ const config = require('./config')
 
 check(config.redis_uri, 'Missing config.redis_uri')
 
-const rediser = {
-    client: redis.createClient({
-        url: config.redis_uri,
-    }),
-}
 
-const client = rediser.client
+const client = redis.createClient({
+    url: config.redis_uri,
+})
+
+client.connect()
+
+
+const rediser = {
+    client,
+}
 
 client.on('connect', () => {
     console.log(`rediser: 🍉 Connected - ${config.redis_uri}`)
 })
 
 rediser.cmd = async (...arg) => {
-    return new Promise((resolve, reject) => {
-        client[arg[0]](...arg.slice(1), (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(reply)
-        })
-    })
+    return client.sendCommand(arg)
 }
 
-rediser.expire = (key, time) => {
-    return new Promise((resolve, reject) => {
-        client.expire(key, time, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(JSON.parse(reply))
-        })
-    })
+rediser.expire = async (key, time) => {
+    return client.EXPIRE(key, time)
 }
 
 rediser.get = async (key) => {
-    return new Promise((resolve, reject) => {
-        client.get(key, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(JSON.parse(reply))
-        })
-    })
+    return JSON.parse(await client.GET(key))
 }
 
-rediser.set = async (key, value) => {
-    return new Promise((resolve, reject) => {
-        client.set(key, JSON.stringify(value), (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(reply)
-        })
-    })
+rediser.set = async (key, value, option) => {
+    return client.SET(key, JSON.stringify(value), option)
 }
 
 rediser.hset = async (key, name, value) => {
-    return new Promise((resolve, reject) => {
-        client.hset(key, name, JSON.stringify(value), (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(reply)
-        })
-    })
+    client.HSET(key, name, JSON.stringify(value))
 }
 
 rediser.hget = async (key, name) => {
-    return new Promise((resolve, reject) => {
-        client.hget(key, name, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve(JSON.parse(reply))
-        })
-    })
+    return JSON.parse(await client.HGET(key, name))
 }
 
 rediser.hgetall = async (key) => {
-    return new Promise((resolve, reject) => {
-        client.hgetall(key, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
+    const reply = await client.HGETALL(key)
 
-            Object.keys(reply).forEach((k) => {
-                reply[k] = JSON.parse(reply[k])
-            })
-
-            return resolve(reply)
-        })
+    Object.keys(reply).forEach((k) => {
+        reply[k] = JSON.parse(reply[k])
     })
+
+    return reply
 }
 
 rediser.hdel = async (key, name) => {
-    return new Promise((resolve, reject) => {
-        client.hdel(key, name, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
-
-            return resolve()
-        })
-    })
+    return client.HDEL(key, name)
 }
 
 rediser.del = async (key) => {
-    return new Promise((resolve, reject) => {
-        client.del(key, (error, reply) => {
-            if (error) {
-                return reject(error)
-            }
+    return client.DEL(key)
+}
 
-            return resolve()
-        })
+rediser.sub = async (channel, callback) => {
+    const subscriber = client.duplicate()
+    await subscriber.connect()
+
+    await subscriber.pSubscribe(channel, (message, ...arg) => {
+        callback(JSON.parse(message), ...arg)
     })
 }
 
+rediser.pub = async (channel, message) => {
+    return client.publish(channel, JSON.stringify(message))
+}
 
 
 module.exports = rediser

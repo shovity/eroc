@@ -1,9 +1,7 @@
 const express = require('express')
 
 
-const router = {}
-
-router.create = (...params) => {
+const Router = (...params) => {
     const router = express.Router(...params)
     const methods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'option', 'use', 'all']
 
@@ -28,10 +26,6 @@ router.create = (...params) => {
     })
     
     return router
-}
-
-router.scan = () => {
-    
 }
 
 

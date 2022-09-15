@@ -17,6 +17,6 @@
     "mongodb": "^3.6.1",
     "mongoose": "^5.10.3",
     "node-fetch": "^2.6.0",
-    "redis": "^3.0.2"
+    "redis": "^4.3.1"
   }
 }
