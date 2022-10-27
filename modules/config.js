@@ -21,5 +21,10 @@ if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
     require(path.join(config.app_dir, 'config.js'))(config)
 }
 
+// Override reids_uri from environment
+if (process.env.REDIS_URI) {
+    config.redis_uri = process.env.REDIS_URI
+}
+
 
 module.exports = config
