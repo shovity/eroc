@@ -1,9 +1,11 @@
 const path = require('path')
 const fs = require('fs').promises
+const express = require('express')
 
 const config = require('./config')
 const rediser = require('./rediser')
 const scanner = require('./scanner')
+const util = require('./util')
 
 
 const cardinal = {}
@@ -13,9 +15,18 @@ cardinal.boot = async (app) => {
     // Load remote config from redis
     if (config.redis_uri) {
         check(config.service, 'Missing config.service')
-        const remoteConfig = await rediser.hget('eroc_config', config.service)
-        Object.assign(config, remoteConfig)
+
+        Object.assign(
+            config,
+            await rediser.hget('eroc_config', '*'),
+            await rediser.hget('eroc_config', config.service),
+        )
     }
+
+    // Check required config
+    check(config.service, 'Missing config.service')
+    check(config.env, 'Missing config.env')
+    check(config.secret_key, 'Missing config.secret_key')
 
     console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
 
@@ -60,24 +71,45 @@ cardinal.seek = async (app) => {
         }
     }
     
-    if (await readable(config.scan_router)) {
-        const router = await scanner.router(config.scan_router)
-        app.use(path.join('/', config.service), router)
+    if (await readable(config.seek_routers)) {
+
+        try {
+            const router = await scanner.router(config.seek_routers)
+            app.use(path.join('/', config.service), router)
+        } catch (error) {
+            console.log('eroc: ERROR - seek router false', error)
+        }
     }
 
-    if (await readable(config.scan_public)) {
-        app.use(express.static(path.join(config.app_dir, config.scan_public)))
+    if (await readable(config.seek_public)) {
+        app.use(express.static(path.join(config.app_dir, config.seek_public)))
     }
 
-    if (await readable(config.scan_static)) {
+    if (await readable(config.seek_static)) {
         const match = path.join('/', config.service, 'static')
 
-        app.use(match, express.static(path.join(config.app_dir, config.scan_static)))
+        app.use(match, express.static(path.join(config.app_dir, config.seek_static)))
 
         app.use(match, async (req, res, next) => {
             res.status(404)
             return res.end('Static not found')
         })
+    }
+
+    if (await readable(config.seek_events)) {
+        const paths = await util.getFiles(config.seek_events)
+
+        for (const p of paths) {
+            require(p)
+        }
+    }
+
+    if (await readable(config.seek_tasks)) {
+        const paths = await util.getFiles(config.seek_tasks)
+
+        for (const p of paths) {
+            require(p)
+        }
     }
 }
 
@@ -88,8 +120,12 @@ cardinal.monitoring = async (app) => {
             cardinal.boot(app).then(() => {
                 console.log('eroc: Reboot done!')
             }).catch((error) => {
-                console.log('ERROR - eroc: Reboot failed:', error)
+                console.log('eroc: ERROR - Reboot failed:', error)
             })
+        }
+
+        if (message.action === 'restart') {
+            throw 'Force restart from remoter'
         }
     })
 }

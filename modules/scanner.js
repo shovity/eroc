@@ -3,25 +3,15 @@ const { readdir } = require('fs').promises
 
 const Router = require('./Router')
 const config = require('./config')
+const util = require('./util')
 
-
-async function getFiles(dir) {
-    const dirents = await readdir(dir, { withFileTypes: true })
-
-    const files = await Promise.all(dirents.map((dirent) => {
-        const res = resolve(dir, dirent.name)
-        return dirent.isDirectory() ? getFiles(res) : res
-    }))
-
-    return [].concat(...files)
-}
 
 const scanner = {}
 
 scanner.router = async (dir) => {
     const router = Router()
 
-    const paths = (await getFiles(dir)).filter((path) => {
+    const paths = (await util.getFiles(dir)).filter((path) => {
         return /^[^_].*\.js$/.test(path.split('/').pop())
     })
 

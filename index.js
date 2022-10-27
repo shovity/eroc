@@ -15,7 +15,7 @@ const proxy = new Proxy(eroc, {
 
         // Load non-existent module to 'eroc'
         if (target[prop] === undefined) {
-            target[prop] = require(path.join(__dirname, `module/${prop}`))
+            target[prop] = require(path.join(__dirname, `modules/${prop}`))
         }
 
         return target[prop]

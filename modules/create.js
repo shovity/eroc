@@ -16,7 +16,7 @@ const create = (middle) => {
     const server = http.createServer(app)
 
     setup(app, middle).catch((error) => {
-        console.log('ERROR - eroc: Setup application failed:', error)
+        console.log('eroc: ERROR - Setup application failed:', error)
     })
 
     server.listen(config.port, () => {
@@ -30,7 +30,7 @@ const setup = async (app, middle) => {
     const hbs = exphbs.create({ extname: 'html' })
 
     app.engine('html', hbs.engine)
-    app.set('views', path.resolve(config.app_dir, config.scan_views))
+    app.set('views', path.resolve(config.app_dir, config.seek_views))
     app.set('view engine', 'html')
 
     app.use(rio)
@@ -39,16 +39,11 @@ const setup = async (app, middle) => {
     app.use(cookieParser())
     app.use(cors())
 
+    middle && middle(app)?.catch(console.error)
+
     await cardinal.boot(app)
     await cardinal.seek(app)
     await cardinal.monitoring(app)
-
-    // Check required config before init application
-    check(config.service, 'Missing config.service')
-    check(config.env, 'Missing config.env')
-    check(config.secret_key, 'Missing config.secret_key')
-
-    middle && middle(app)?.catch(console.error)
 
     // Catch 404 route
     app.use((req, res, next) => {
