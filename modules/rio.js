@@ -1,6 +1,8 @@
 const http = require('http')
 const Event = require('events')
 
+const vanguard = require('./vanguard')
+
 
 const genNextUrl = (data, req, res) => {
 
@@ -47,47 +49,24 @@ const rio = (req, res, next) => {
         return convert ? convert(value) : value
     }
 
-    // req.auth = {
-    //     login: async () => {
-    //         if (!await ruler.get(req)) {
-    //             throw 'require login'
-    //         }
-    //     },
-    //     role: async (role) => {
-    //         const roles = role.split(' ').filter(r => r)
-    //         const user = await ruler.get(req)
+    req.auth = {
+        login: async () => {
+            check(await vanguard.get(req), 'Require login')
+        },
+        role: async (role) => {
+            const roles = role.split(' ').filter(r => r)
+            const user = await vanguard.get(req)
 
-    //         if (!user) {
-    //             throw 'require login'
-    //         }
-
-    //         if (!ruler.checkRole(user, roles)) {
-    //             throw {
-    //                 message: '403 Forbidden',
-    //                 require: roles,
-    //             }
-    //         }
-    //     },
-    //     permission: async (role, scope='', permission='') => {
-    //         const permissions = permission.split(' ').filter(p => p)
-    //         const user = await ruler.get(req)
-
-    //         if (!user) {
-    //             throw 'require login'
-    //         }
-
-    //         if (!ruler.checkPermission(user, role, scope, permissions)) {
-    //             throw {
-    //                 message: '403 Forbidden',
-    //                 require: permissions,
-    //             }
-    //         }
-    //     },
-    // }
+            check(user, 'Require login')
+            check(vanguard.checkRole(user, roles), { message: '403 Forbidden', require: roles })
+        },
+    }
 
     res.success = (data, option) => {
         const response = {}
 
+        res.u.paging = req.gp('limit', null)
+        
         if (!option) {
             option = {}
         }
