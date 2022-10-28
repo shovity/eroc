@@ -26,7 +26,7 @@ cardinal.boot = async (app) => {
     // Check required config
     check(config.service, 'Missing config.service')
     check(config.env, 'Missing config.env')
-    check(config.secret_key, 'Missing config.secret_key')
+    check(config.secret, 'Missing config.secret')
 
     console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
 
