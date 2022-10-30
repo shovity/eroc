@@ -1,5 +1,7 @@
-const vanguard =  {}
+const { jwt } = require('eroc')
 
+
+const vanguard =  {}
 
 /**
  * Get and verify JWT from header or cooke

@@ -3,7 +3,7 @@ const path = require('path')
 
 global.check = (condition, message) => {
     if (!condition) {
-        throw Error(message)
+        throw typeof message === 'string' ? Error(message) : message
     }
 }
 
