@@ -1,4 +1,4 @@
-const { jwt } = require('eroc')
+const { jwt, requester } = require('eroc')
 
 
 const vanguard =  {}
@@ -60,7 +60,7 @@ vanguard.gate = (option={}) => {
             }
 
             if (req.u.user.iat < tiat) {
-                const { data } = await requester.get(`$user:v1/users/token`, { token })
+                const { data } = await requester.post('user/v1/users/token', { token })
                 req.u.user = await jwt.verify(data.token)
 
                 if (req.headers.token) {
@@ -81,7 +81,7 @@ vanguard.gate = (option={}) => {
         handle().catch((error) => {
             res.u.cookie('token', '')
             console.error(error)
-            return next('Có lỗi trong quá trình đang nhập, vui lòng thử lại')
+            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
         })
     }
 }
@@ -116,7 +116,7 @@ vanguard.detect = () => {
         handle().catch((error) => {
             res.u.cookie('token', '')
             console.error(error)
-            return next('Có lỗi trong quá trình đang nhập, vui lòng thử lại')
+            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
         })
     }
 }

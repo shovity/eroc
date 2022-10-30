@@ -6,11 +6,9 @@ const config = require('./config')
 
 const requester = {
     setting: {
-        header: {
-            client: config.client || '',
-        },
-        apiBase: config.requester_service_base,
-    }
+        header: {},
+        base: config.requester_base,
+    },
 }
 
 const setting = requester.setting
@@ -48,21 +46,14 @@ requester.fetch = ({ url, method, body, param, option }) => {
 
 
     if (url.indexOf('http') !== 0) {
+        // Internal service call. Exp: user/v1/users/token
+        
+        url = url.replace(/^\/+/g, '')
 
-        // handle internal service call. Exp: $user:v1/users
-        if (url.indexOf('$') === 0) {
-            const service = url.split(':')[0].slice(1)
-            const endpoint = url.slice(service.length + 2)
+        const service = url.split('/')[0]
 
-            url = `http://${setting.apiBase || service}:3000/api/${service}/${endpoint}`
-
-            arg.headers['eroc-secret'] = ''
-        } else {
-
-            // add base api backend
-            url = `${setting.apiBase}/${url.replace(/^\/|\/$/g, '')}`
-        }
-
+        url = `http://${setting.base || service}:3000/${url}`
+        arg.headers['client'] = config.client
     }
 
     if (body) {
@@ -99,6 +90,7 @@ requester.fetch = ({ url, method, body, param, option }) => {
 }
 
 requester.get = (url, param, option) => {
+
     return requester.fetch({
         method: 'GET',
         url,
