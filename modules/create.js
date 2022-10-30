@@ -9,6 +9,7 @@ const exphbs = require('express-handlebars')
 const cardinal = require('./cardinal')
 const config = require('./config')
 const rio = require('./rio')
+const vanguard = require('./vanguard')
 
 
 const create = (middle) => {
@@ -38,6 +39,7 @@ const setup = async (app, middle) => {
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
     app.use(cors())
+    app.use(vanguard.detect())
 
     middle && middle(app)?.catch(console.error)
 

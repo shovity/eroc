@@ -26,7 +26,7 @@ scanner.router = async (dir) => {
 
         // console.log(`eroc: load ${matchs.join('/')}`)
 
-        if (matchs[matchs.length - 1][0] === '$') {
+        if (['^', '~'].includes(matchs[matchs.length - 1][0])) {
             matchs.pop()
         }
 

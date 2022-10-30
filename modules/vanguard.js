@@ -34,12 +34,12 @@ vanguard.gate = (option={}) => {
                     return next()
                 }
 
-                if (option.api) {
-                    res.u.cookie('token', '')
-                    return res.error({ message: '401 Unauthorized' }, { code: 401 })
-                } else {
-                    res.u.cookie('token', '')
+                res.u.cookie('token', '')
+
+                if (option.page) {
                     return res.redirect(`/login?next=${req.originalUrl}`)
+                } else {
+                    return res.error({ message: '401 Unauthorized' }, { code: 401 })
                 }
             }
 
@@ -87,17 +87,25 @@ vanguard.gate = (option={}) => {
 }
 
 
-
+/**
+ * Just detect if request is authenticated
+ * and build req.u.user
+ * @returns Middleware
+ */
 vanguard.detect = () => {
 
     return async (req, res, next) => {
 
         const handle = async () => {
+            if (req.u.user) {
+                return next()
+            }
+
             const token = req.headers.token || req.cookies.token
 
             if (token) {
                 req.u.user = await jwt.verify(token).catch((error) => {
-                    res.u.cookie('token', '')
+                    req.cookies.token && res.u.cookie('token', '')
                     return next(error)
                 })
             }
