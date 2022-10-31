@@ -16,5 +16,14 @@ util.getFiles = async (dir) => {
     return [].concat(...files)
 }
 
+util.intersect = (target, destination) => {
+    
+    if (!Array.isArray(target)) {
+        return
+    }
+
+    return destination.find(e => target.indexOf(e) !== -1)
+}
+
 
 module.exports = util

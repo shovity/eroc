@@ -2,6 +2,7 @@ const http = require('http')
 const Event = require('events')
 
 const vanguard = require('./vanguard')
+const util = require('./util')
 
 
 const genNextUrl = (data, req, res) => {
@@ -51,15 +52,22 @@ const rio = (req, res, next) => {
 
     req.auth = {
         login: async () => {
-            check(await vanguard.get(req), 'Require login')
+            check(await vanguard.getUser(req), 'Require login')
         },
         role: async (role) => {
             const roles = role.split(' ').filter(r => r)
-            const user = await vanguard.get(req)
+            const user = await vanguard.getUser(req)
 
             check(user, 'Require login')
-            check(vanguard.checkRole(user, roles), { message: '403 Forbidden', require: roles })
+            check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
         },
+        client: async (permission) => {
+            const permissions = permission.split(' ').filter(p => p)
+            const client = await vanguard.getClient(req)
+            
+            check(client, 'Require client key')
+            check(util.intersect(client.permissions, permissions), { message: 'Insufficient permission', require: permissions })
+        }
     }
 
     res.success = (data, option) => {
