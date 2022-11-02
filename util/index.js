@@ -5,10 +5,11 @@ const util = {}
 const proxy = new Proxy(util, {
 
     get(target, prop, receiver) {
-
+        const name = `${prop}U`
+        
         // Load non-existent module to 'util'
-        if (target[prop] === undefined) {
-            target[prop] = require(path.join(__dirname, prop))
+        if (target[name] === undefined) {
+            target[name] = require(path.join(__dirname, prop))
         }
 
         return target[prop]

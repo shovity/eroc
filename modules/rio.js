@@ -11,8 +11,8 @@ const genNextUrl = (data, req, res) => {
         return ''
     }
 
-    const limit = +req.gp('limit', res.u.paging)
-    const offset = +req.gp('offset', 0) + limit
+    const limit = req.gp('limit', 12, Number)
+    const offset = req.gp('offset', 0, Number) + limit
     const query = { ...req.query }
 
     if (data.length < limit) {
@@ -72,8 +72,6 @@ const rio = (req, res, next) => {
 
     res.success = (data, option) => {
         const response = {}
-
-        res.u.paging = req.gp('limit', null)
         
         if (!option) {
             option = {}
@@ -87,7 +85,7 @@ const rio = (req, res, next) => {
             response.data = data
         }
 
-        if (res.u.paging) {
+        if (req.gp('limit', null)) {
             response.meta = response.meta || {}
             response.meta.next = genNextUrl(data, req, res)
         }
