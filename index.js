@@ -1,9 +1,18 @@
 const path = require('path')
 
 
-global.check = (condition, message) => {
+global.check = (condition, message, code) => {
+    
     if (!condition) {
-        throw typeof message === 'string' ? Error(message) : message
+        const error = {}
+
+        error.message = message
+
+        if (code) {
+            error.code = code
+        }
+
+        throw error
     }
 }
 

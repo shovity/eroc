@@ -38,16 +38,23 @@ const rio = (req, res, next) => {
         res.cookie(key, value, option)
     }
 
-    req.gp = (key, defaultValue, convert) => {
-        const value = [req.body[key], req.query[key], req.params[key], defaultValue].find(v => v !== undefined)
+    req.gp = (key, defaultValue, validate) => {
+        let value = [req.body[key], req.query[key], req.params[key], defaultValue].find(v => v !== undefined)
+        check(value !== undefined, `Missing param ${key}`)
 
-        if (value === undefined) {
-            // need throw exception to break api handle
-            // express error will catch it
-            throw `missing param ${key}`
+        if (typeof validate === 'function') {
+            const converted = validate(value)
+            
+            if (converted !== undefined) {
+                value = converted
+            }
+        } else if (Array.isArray(validate)) {
+            check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
+        } else if (validate instanceof RegExp) {
+            check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
         }
 
-        return convert ? convert(value) : value
+        return value
     }
 
     req.auth = {
