@@ -4,7 +4,7 @@ const Router = require('./Router')
 
 
 const query = () => {
-    const router = eroc.Router({ caseSensitive: true })
+    const router = Router({ caseSensitive: true })
     
     router.post('/:model', async (req, res, next) => {
         const model = req.params.model 
