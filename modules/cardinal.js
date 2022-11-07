@@ -88,7 +88,9 @@ cardinal.seek = async (app) => {
     if (await readable(config.seek_static)) {
         const match = path.join('/', config.service, 'static')
 
-        app.use(match, express.static(path.join(config.app_dir, config.seek_static)))
+        app.use(match, express.static(path.join(config.app_dir, config.seek_static), {
+            maxAge: config.env === 'pro' ? '1y' : 0,
+        }))
 
         app.use(match, async (req, res, next) => {
             res.status(404)
