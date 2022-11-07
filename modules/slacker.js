@@ -30,7 +30,7 @@ slacker.send = async (message, option={}) => {
     }
 
     if (config.env !== 'pro') {
-        body.channel = '#test-report'
+        body.channel = config.slacker_test_channel
     }
 
     return requester.post(

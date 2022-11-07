@@ -25,8 +25,6 @@ cardinal.boot = async (app) => {
 
     // Check required config
     check(config.service, 'Missing config.service')
-    check(config.env, 'Missing config.env')
-    check(config.secret, 'Missing config.secret')
 
     console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
 
@@ -54,6 +52,12 @@ cardinal.boot = async (app) => {
         mongoose.set('useFindAndModify', false)
         connect()
     }
+}
+
+cardinal.shutdown = async (app) => {
+    const mongoose = require('mongoose')
+
+    await mongoose.disconnect()
 }
 
 cardinal.seek = async (app) => {
@@ -117,17 +121,15 @@ cardinal.seek = async (app) => {
 
 cardinal.monitoring = async (app) => {
 
-    rediser.sub(`service:${config.service}`, (message) => {
+    rediser.sub(`service:${config.service}`, async (message) => {
         if (message.action === 'reboot') {
-            cardinal.boot(app).then(() => {
-                console.log('eroc: Reboot done!')
-            }).catch((error) => {
-                console.log('eroc: ERROR - Reboot failed:', error)
-            })
+            await cardinal.shutdown(app)
+            await cardinal.boot(app)
+            console.log('eroc: Reboot done!')
         }
 
         if (message.action === 'restart') {
-            throw 'Force restart from remoter'
+            throw 'Force restart from cardinal'
         }
     })
 }

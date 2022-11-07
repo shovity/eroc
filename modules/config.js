@@ -8,6 +8,8 @@ const config = new Event()
 Object.assign(config, {
     app_dir: path.dirname(require.main.filename),
     port: 3000,
+    env: 'dev',
+    secret: 'terces',
     seek_static: 'static',
     seek_public: 'public',
     seek_views: 'views',
