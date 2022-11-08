@@ -4,14 +4,15 @@ const rediser = require('./rediser')
 
 const cacher = {}
 
-
 cacher.middle = (option) => {
-
     // default option
-    option = Object.assign({
-        expire: 173200, // 3d
-        prefix: '',
-    }, option)
+    option = Object.assign(
+        {
+            expire: 173200, // 3d
+            prefix: '',
+        },
+        option,
+    )
 
     if (typeof option.prefix === 'function') {
         option.prefix = option.prefix()
@@ -19,7 +20,7 @@ cacher.middle = (option) => {
 
     return async (req, res, next) => {
         const md5sum = crypto.createHash('md5')
-        const [ base, param ] = req.originalUrl.split('?')
+        const [base, param] = req.originalUrl.split('?')
         const key = `cacher:middle:${option.prefix}:${base}:${param ? md5sum.update(param).digest('base64') : ''}`
 
         if (req.headers.cacher !== 'disable') {
@@ -43,7 +44,5 @@ cacher.middle = (option) => {
         next()
     }
 }
-
-
 
 module.exports = cacher

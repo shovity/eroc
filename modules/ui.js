@@ -1,12 +1,11 @@
 const Router = require('./Router')
 
-
-module.exports = (template, command={}) => {
+module.exports = (template, command = {}) => {
     const router = Router()
 
     router.get('/', async (req, res, next) => {
         const handle = command.context
-        
+
         let context = null
 
         if (!handle) {

@@ -2,13 +2,11 @@ const CronJob = require('cron').CronJob
 
 const config = require('./config')
 
-
 const scheduler = {
     jobs: [],
 }
 
-scheduler.add = (expr, handle, option={}) => {
-
+scheduler.add = (expr, handle, option = {}) => {
     const wrap = () => {
         try {
             if (handle.constructor.name === 'AsyncFunction') {
@@ -37,6 +35,5 @@ scheduler.add = (expr, handle, option={}) => {
 
     cronjob.start()
 }
-
 
 module.exports = scheduler

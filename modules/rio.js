@@ -1,12 +1,9 @@
-const http = require('http')
 const Event = require('events')
 
 const vanguard = require('./vanguard')
 const util = require('./util')
 
-
-const genNextUrl = (data, req, res) => {
-
+const genNextUrl = (data, req) => {
     if (!Array.isArray(data)) {
         return ''
     }
@@ -18,33 +15,33 @@ const genNextUrl = (data, req, res) => {
     if (data.length < limit) {
         return ''
     }
-    
+
     query.offset = offset
 
-    return `${req.originalUrl.split('?')[0]}?${Object.keys(query).map(k => `${k}=${query[k]}`).join('&')}`
+    return `${req.originalUrl.split('?')[0]}?${Object.keys(query)
+        .map((k) => `${k}=${query[k]}`)
+        .join('&')}`
 }
 
 const rio = (req, res, next) => {
-
     req.u = res.u = new Event()
 
-    req.u.cookie = (key, value, option={}) => {
-
+    req.u.cookie = (key, value, option = {}) => {
         option = {
             maxAge: 31104000000,
-            ...option
+            ...option,
         }
 
         res.cookie(key, value, option)
     }
 
     req.gp = (key, defaultValue, validate) => {
-        let value = [req.body[key], req.query[key], req.params[key], defaultValue].find(v => v !== undefined)
+        let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)
         check(value !== undefined, `Missing param ${key}`)
 
         if (typeof validate === 'function') {
             const converted = validate(value)
-            
+
             if (converted !== undefined) {
                 value = converted
             }
@@ -62,24 +59,27 @@ const rio = (req, res, next) => {
             check(await vanguard.getUser(req), 'Require login')
         },
         role: async (role) => {
-            const roles = role.split(' ').filter(r => r)
+            const roles = role.split(' ').filter((r) => r)
             const user = await vanguard.getUser(req)
 
             check(user, 'Require login')
             check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
         },
         client: async (permission) => {
-            const permissions = permission.split(' ').filter(p => p)
+            const permissions = permission.split(' ').filter((p) => p)
             const client = await vanguard.getClient(req)
-            
+
             check(client, 'Require client key')
-            check(util.intersect(client.permissions, permissions), { message: 'Insufficient permission', require: permissions })
-        }
+            check(util.intersect(client.permissions, permissions), {
+                message: 'Insufficient permission',
+                require: permissions,
+            })
+        },
     }
 
     res.success = (data, option) => {
         const response = {}
-        
+
         if (!option) {
             option = {}
         }
@@ -94,7 +94,7 @@ const rio = (req, res, next) => {
 
         if (req.gp('limit', null)) {
             response.meta = response.meta || {}
-            response.meta.next = genNextUrl(data, req, res)
+            response.meta.next = genNextUrl(data, req)
         }
 
         res.status(option.code || 200)
@@ -103,7 +103,7 @@ const rio = (req, res, next) => {
         res.u.emit('success', response)
     }
 
-    res.error = (error, option={}) => {
+    res.error = (error, option = {}) => {
         res.status(option.code || 400)
 
         if (typeof error === 'string') {
@@ -117,12 +117,11 @@ const rio = (req, res, next) => {
                 url: req.originalUrl,
                 method: req.method,
                 ...error,
-            }
+            },
         })
     }
 
     next()
 }
-
 
 module.exports = rio

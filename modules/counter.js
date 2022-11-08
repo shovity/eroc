@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-
 const counter = {}
 
 const schema = new mongoose.Schema(
@@ -9,7 +8,7 @@ const schema = new mongoose.Schema(
         value: Number,
     },
     {
-        timestamps: true
+        timestamps: true,
     },
 )
 
@@ -30,11 +29,10 @@ counter.get = async (key) => {
         {
             new: true,
             upsert: true,
-        }
+        },
     )
 
     return c.value
 }
-
 
 module.exports = counter

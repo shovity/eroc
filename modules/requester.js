@@ -3,7 +3,6 @@ const AbortController = require('abort-controller')
 
 const config = require('./config')
 
-
 const requester = {
     setting: {
         header: {},
@@ -13,16 +12,17 @@ const requester = {
 
 const setting = requester.setting
 
-
 requester.fetch = ({ url, method, body, param, option }) => {
+    option = Object.assign(
+        {
+            // parse: 'json',
+            // timeout: 30000,
+            // formData: false,
+            // header: {},
+        },
+        option,
+    )
 
-    option = Object.assign({
-        // parse: 'json',
-        // timeout: 30000,
-        // formData: false,
-        // header: {},
-    }, option)
-    
     const arg = {
         // defaut node-fetch option
         // https://www.npmjs.com/package/node-fetch#options
@@ -44,10 +44,9 @@ requester.fetch = ({ url, method, body, param, option }) => {
         arg.signal = controller.signal
     }
 
-
     if (url.indexOf('http') !== 0) {
         // Internal service call. Exp: user/v1/users/token
-        
+
         url = url.replace(/^\/+/g, '')
 
         const service = url.split('/')[0]
@@ -67,30 +66,34 @@ requester.fetch = ({ url, method, body, param, option }) => {
     }
 
     if (param) {
-        url += (url.indexOf('?') !== 0? '?' : '&')
-            + Object.keys(param).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(param[k])}`).join('&')
+        url +=
+            (url.indexOf('?') !== 0 ? '?' : '&') +
+            Object.keys(param)
+                .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(param[k])}`)
+                .join('&')
     }
 
-    return fetch(url, arg).then((res) => {
+    return fetch(url, arg)
+        .then((res) => {
+            if (option.parse === 'text') {
+                return res.text()
+            }
 
-        if (option.parse === 'text') {
-            return res.text()
-        }
+            return res.json()
+        })
+        .then((res) => {
+            if (res.error) {
+                return Promise.reject(res.error)
+            }
 
-        return res.json()
-    }).then(res => {
-        if (res.error) {
-            return Promise.reject(res.error)
-        }
-
-        return Promise.resolve(res)
-    }).finally(() => {
-        clearTimeout(holder.timeout)
-    })
+            return Promise.resolve(res)
+        })
+        .finally(() => {
+            clearTimeout(holder.timeout)
+        })
 }
 
 requester.get = (url, param, option) => {
-
     return requester.fetch({
         method: 'GET',
         url,
@@ -100,7 +103,6 @@ requester.get = (url, param, option) => {
 }
 
 requester.post = (url, body, option) => {
-
     return requester.fetch({
         method: 'POST',
         url,
@@ -110,7 +112,6 @@ requester.post = (url, body, option) => {
 }
 
 requester.put = (url, body, option) => {
-    
     return requester.fetch({
         method: 'PUT',
         url,
@@ -120,7 +121,6 @@ requester.put = (url, body, option) => {
 }
 
 requester.patch = (url, body, option) => {
-    
     return requester.fetch({
         method: 'PATCH',
         url,
@@ -130,7 +130,6 @@ requester.patch = (url, body, option) => {
 }
 
 requester.delete = (url, body, option) => {
-    
     return requester.fetch({
         method: 'DELETE',
         url,
@@ -138,6 +137,5 @@ requester.delete = (url, body, option) => {
         option,
     })
 }
-
 
 module.exports = requester

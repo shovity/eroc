@@ -1,10 +1,6 @@
 const { resolve } = require('path')
-const { readdir } = require('fs').promises
-
 const Router = require('./Router')
-const config = require('./config')
 const util = require('./util')
-
 
 const scanner = {}
 
@@ -35,6 +31,5 @@ scanner.router = async (dir) => {
 
     return router
 }
-
 
 module.exports = scanner

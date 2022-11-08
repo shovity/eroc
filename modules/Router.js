@@ -1,12 +1,10 @@
 const express = require('express')
 
-
 const Router = (...params) => {
     const router = express.Router(...params)
     const methods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'option', 'use', 'all']
 
     methods.forEach((m) => {
-
         // Move origin method to private
         router[`_${m}`] = router[m]
 
@@ -24,9 +22,8 @@ const Router = (...params) => {
             router[`_${m}`](...params)
         }
     })
-    
+
     return router
 }
-
 
 module.exports = Router

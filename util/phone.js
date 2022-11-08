@@ -1,6 +1,6 @@
 const phone = {}
 
-phone.refine = (pn='') => {
+phone.refine = (pn = '') => {
     pn = pn.replace(/[^0-9]/g, '')
 
     if (pn.startsWith('84')) {
@@ -11,6 +11,5 @@ phone.refine = (pn='') => {
 
     return pn
 }
-
 
 module.exports = phone

@@ -2,16 +2,13 @@ const redis = require('redis')
 
 const config = require('./config')
 
-
 check(config.redis_uri, 'Missing config.redis_uri')
-
 
 const client = redis.createClient({
     url: config.redis_uri,
 })
 
 client.connect()
-
 
 const rediser = {
     client,
@@ -75,6 +72,5 @@ rediser.sub = async (channel, callback) => {
 rediser.pub = async (channel, message) => {
     return client.publish(channel, JSON.stringify(message))
 }
-
 
 module.exports = rediser

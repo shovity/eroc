@@ -1,6 +1,5 @@
 const http = require('http')
 const path = require('path')
-const Event = require('events')
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
@@ -10,7 +9,6 @@ const cardinal = require('./cardinal')
 const config = require('./config')
 const rio = require('./rio')
 const vanguard = require('./vanguard')
-
 
 const create = (middle) => {
     const app = express()
@@ -89,14 +87,12 @@ const setup = async (app, middle) => {
 
     if (config.api_monitor) {
         const expressListEndpoints = require('express-list-endpoints')
-        
+
         console.log('eroc: 🧬 list apis')
         expressListEndpoints(app).forEach((api) => {
             api.methods.forEach((m) => console.log(`    ${m.padEnd(6)}${api.path}`))
         })
     }
-    
 }
-
 
 module.exports = create

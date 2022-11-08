@@ -2,7 +2,6 @@ const fs = require('fs')
 const path = require('path')
 const Event = require('events')
 
-
 const config = new Event()
 
 Object.assign(config, {
@@ -27,6 +26,5 @@ if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
 if (process.env.REDIS_URI) {
     config.redis_uri = process.env.REDIS_URI
 }
-
 
 module.exports = config

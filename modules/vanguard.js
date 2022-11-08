@@ -3,12 +3,11 @@ const requester = require('./requester')
 const config = require('./config')
 const util = require('./util')
 
-
-const vanguard =  {}
+const vanguard = {}
 
 /**
  * Get and verify user JWT from header or cooke
- * @param {Request} req 
+ * @param {Request} req
  * @returns {Object} Token payload
  */
 vanguard.getUser = async (req) => {
@@ -21,14 +20,14 @@ vanguard.getUser = async (req) => {
 
 /**
  * Get client from header and data from config
- * @param {Request} req 
+ * @param {Request} req
  * @returns {Object} Client plain object
  */
- vanguard.getClient = async (req) => {
+vanguard.getClient = async (req) => {
     const client = req.headers.client
 
     if (client && config.clients?.length) {
-        const data = config.clients.find(c => c.key === client)
+        const data = config.clients.find((c) => c.key === client)
         check(data, 'Client not found')
         return data
     }
@@ -39,11 +38,10 @@ vanguard.getUser = async (req) => {
  * @param {Object} option { week: Reject access when missing token }
  * @returns {Function} Middleware
  */
-vanguard.gate = (option={}) => {
+vanguard.gate = (option = {}) => {
     const rediser = require('./rediser')
 
     return (req, res, next) => {
-
         const handle = async () => {
             const token = req.headers.token || req.cookies.token
 
@@ -104,16 +102,13 @@ vanguard.gate = (option={}) => {
     }
 }
 
-
 /**
  * Just detect if request is authenticated
  * and build req.u.user
  * @returns Middleware
  */
 vanguard.detect = () => {
-
     return async (req, res, next) => {
-
         const handle = async () => {
             if (!req.u.user) {
                 const token = req.headers.token || req.cookies.token
@@ -130,7 +125,7 @@ vanguard.detect = () => {
                 const client = req.headers.client
 
                 if (client && config.clients?.length) {
-                    req.u.client = config.clients.find(c => c.key === client)
+                    req.u.client = config.clients.find((c) => c.key === client)
                 }
             }
 
@@ -146,16 +141,19 @@ vanguard.detect = () => {
 }
 
 vanguard.role = (role, reject) => {
-    const roles = role.split(' ').filter(r => r)
+    const roles = role.split(' ').filter((r) => r)
 
     return (req, res, next) => {
         if (!util.intersect(req.u.user?.roles, roles)) {
-            return res.error({ message: '403 Forbidden', require: roles }, { code: 403 })
+            if (reject) {
+                reject()
+            } else {
+                return res.error({ message: '403 Forbidden', require: roles }, { code: 403 })
+            }
         }
 
         return next()
     }
 }
-
 
 module.exports = vanguard

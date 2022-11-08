@@ -1,7 +1,6 @@
 const util = {}
 
 util.refine = (place) => {
-
     if (!place) {
         return place
     }
@@ -11,9 +10,7 @@ util.refine = (place) => {
     }
 
     if (place.address_components) {
-
         place.address_components = place.address_components.filter((c) => {
-            
             if (c.types.includes('postal_code')) {
                 return
             }
@@ -27,9 +24,8 @@ util.refine = (place) => {
             })
             .reverse()
     }
-    
+
     return place
 }
-
 
 module.exports = util
