@@ -219,11 +219,12 @@ cardinal.monitoring = async () => {
         if (message.action === 'reboot') {
             await cardinal.shutdown()
             await cardinal.boot(cardinal.app)
-            console.log('eroc: Reboot done!')
+            console.info('eroc: Reboot done!')
         }
 
         if (message.action === 'restart') {
-            throw 'Force restart from cardinal'
+            console.info('Force restart from cardinal') 
+            process.exit(1)
         }
     })
 }
