@@ -6,12 +6,8 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const exphbs = require('express-handlebars')
 const config = require('./config')
-const rediser = require('./rediser')
 const scanner = require('./scanner')
 const util = require('./util')
-const rio = require('./rio')
-const vanguard = require('./vanguard')
-const event = require('./event')
 
 const cardinal = {
     app: null,
@@ -37,6 +33,8 @@ cardinal.create = (middle) => {
 }
 
 cardinal.setup = async (middle) => {
+    const vanguard = require('./vanguard')
+    const rio = require('./rio')
     const app = cardinal.app
     const hbs = exphbs.create({ extname: 'html' })
 
@@ -109,8 +107,8 @@ cardinal.setup = async (middle) => {
 cardinal.boot = async () => {
     // Load remote config from redis
     if (config.redis_uri) {
+        const rediser = require('./rediser')
         check(config.service, 'Missing config.service')
-
         Object.assign(config, await rediser.hget('eroc_config', '*'), await rediser.hget('eroc_config', config.service))
     }
 
@@ -215,18 +213,22 @@ cardinal.seek = async () => {
 }
 
 cardinal.monitoring = async () => {
-    event.on('cardinal', async (message) => {
-        if (message.action === 'reboot') {
-            await cardinal.shutdown()
-            await cardinal.boot(cardinal.app)
-            console.info('eroc: Reboot done!')
-        }
+    if (config.redis_uri) {
+        const event = require('./event')
 
-        if (message.action === 'restart') {
-            console.info('Force restart from cardinal')
-            process.exit(1)
-        }
-    })
+        event.on('cardinal', async (message) => {
+            if (message.action === 'reboot') {
+                await cardinal.shutdown()
+                await cardinal.boot(cardinal.app)
+                console.info('eroc: Reboot done!')
+            }
+
+            if (message.action === 'restart') {
+                console.info('Force restart from cardinal')
+                process.exit(1)
+            }
+        })
+    }
 }
 
 module.exports = cardinal
