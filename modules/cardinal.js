@@ -223,7 +223,7 @@ cardinal.monitoring = async () => {
         }
 
         if (message.action === 'restart') {
-            console.info('Force restart from cardinal') 
+            console.info('Force restart from cardinal')
             process.exit(1)
         }
     })
