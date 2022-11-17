@@ -3,15 +3,15 @@ const config = require('./config')
 
 const tasks = {}
 
-tasks.emit = (service, name, data) => {
-    const topic = `tasks:${service}:${name}`.replaceAll(':', '.')
+tasks.emit = (name, data) => {
+    const topic = `tasks:${name}`.replaceAll(':', '.')
     kafka.pub(topic, data)
 }
 
 tasks.on = (name, handle) => {
     check(handle.constructor.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
 
-    const topic = `tasks:${config.service}:${name}`.replaceAll(':', '.')
+    const topic = `tasks:${name}`.replaceAll(':', '.')
 
     const option = {
         group: `${config.service}:${config.env}:${topic}`,

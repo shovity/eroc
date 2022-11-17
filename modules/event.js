@@ -3,15 +3,15 @@ const config = require('./config')
 
 const event = {}
 
-event.emit = (service, name, data) => {
-    const channel = `event:${service}:${name}`
+event.emit = (name, data) => {
+    const channel = `event:${name}`
     rediser.pub(channel, data)
 }
 
 event.on = (name, handle) => {
     check(handle.constructor.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
 
-    const channel = `event:${config.service}:${name}`
+    const channel = `event:${name}`
 
     const wrap = (data) => {
         handle(data)
