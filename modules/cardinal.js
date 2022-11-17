@@ -216,7 +216,7 @@ cardinal.monitoring = async () => {
     if (config.redis_uri) {
         const event = require('./event')
 
-        event.on(`${config.service}:cardinal`, async (message) => {
+        event.on(`${config.service}.cardinal`, async (message) => {
             if (message.action === 'reboot') {
                 await cardinal.shutdown()
                 await cardinal.boot(cardinal.app)
