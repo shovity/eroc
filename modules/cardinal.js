@@ -47,11 +47,12 @@ cardinal.setup = async (middle) => {
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
     app.use(cors())
-    app.use(vanguard.detect())
-
-    middle && middle(app)?.catch(console.error)
-
+    
     await cardinal.boot()
+    
+    app.use(vanguard.detect())
+    middle && middle(app)?.catch(console.error)
+    
     await cardinal.seek()
     await cardinal.monitoring()
 
@@ -87,6 +88,12 @@ cardinal.setup = async (middle) => {
 
         if (typeof error === 'object') {
             Object.assign(response, error)
+        }
+
+        if (response.message?.includes('code:')) {
+            const [message, code] = response.message.split('code:')
+            response.message = message.trim()
+            response.code = `${config.service}.${code}`.trim()
         }
 
         console.error(error)
