@@ -1,13 +1,13 @@
 const path = require('path')
 
-global.check = (condition, message, code) => {
+global.check = (condition, message) => {
     if (!condition) {
-        const error = {}
+        const error = new Error()
 
-        error.message = message
-
-        if (code) {
-            error.code = code
+        if (typeof message === 'string') {
+            error.message = message
+        } else {
+            Object.assign(error, message)
         }
 
         throw error

@@ -78,7 +78,7 @@ cardinal.setup = async (middle) => {
         // error throw from sync handle and next(err)
 
         const response = {
-            message: error.message || error || 'server error',
+            message: 'Unknow error',
             service: config.service,
             url: req.originalUrl,
             method: req.method,
@@ -88,16 +88,17 @@ cardinal.setup = async (middle) => {
 
         if (typeof error === 'object') {
             Object.assign(response, error)
+        } else if (typeof error === 'string') {
+            response.message = error
         }
 
-        if (response.message?.includes('code:')) {
+        if (response.message.includes('code:')) {
             const [message, code] = response.message.split('code:')
             response.message = message.trim()
             response.code = `${config.service}.${code}`.trim()
         }
 
         console.error(error)
-
         return res.error(response)
     })
 
