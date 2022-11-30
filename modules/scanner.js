@@ -7,9 +7,18 @@ const scanner = {}
 scanner.router = async (dir) => {
     const router = Router()
 
-    const paths = (await util.getFiles(dir)).filter((path) => {
-        return /^[^_].*\.js$/.test(path.split('/').pop())
-    })
+    const paths = (await util.getFiles(dir))
+        .filter((path) => {
+            return /^[a-z][a-z0-9-]+\.js$/.test(path.split('/').pop())
+        })
+        .map((path) => {
+            if (path.endsWith('/index.js')) {
+                path = path.slice(0, -9)
+            }
+
+            return path
+        })
+        .sort()
 
     for (const path of paths) {
         const module = require(path)
@@ -18,12 +27,6 @@ scanner.router = async (dir) => {
         if (typeof module !== 'function') {
             console.warn(`eroc - warn: router not a function - ${path}`)
             continue
-        }
-
-        // console.log(`eroc: load ${matchs.join('/')}`)
-
-        if (['^', '~'].includes(matchs[matchs.length - 1][0])) {
-            matchs.pop()
         }
 
         router.use(matchs.join('/'), module)

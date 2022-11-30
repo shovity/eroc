@@ -47,12 +47,12 @@ cardinal.setup = async (middle) => {
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
     app.use(cors())
-    
+
     await cardinal.boot()
-    
+
     app.use(vanguard.detect())
     middle && middle(app)?.catch(console.error)
-    
+
     await cardinal.seek()
     await cardinal.monitoring()
 
@@ -88,6 +88,10 @@ cardinal.setup = async (middle) => {
 
         if (typeof error === 'object') {
             Object.assign(response, error)
+
+            if (error._message) {
+                response.message = error._message
+            }
         } else if (typeof error === 'string') {
             response.message = error
         }
