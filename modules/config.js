@@ -15,6 +15,11 @@ Object.assign(config, {
     seek_tasks: 'tasks',
     seek_routers: 'routers',
     seek_events: 'events',
+    promise: {},
+})
+
+config.promise.setupDone = new Promise((resolve) => {
+    config.on('cardinal:setup_done', resolve)
 })
 
 // Load project config.js

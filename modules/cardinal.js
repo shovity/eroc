@@ -25,9 +25,11 @@ cardinal.create = (middle) => {
         console.log('eroc: ERROR - Setup application failed:', error)
     })
 
-    server.listen(config.port, () => {
-        console.log('eroc: 🍔 HTTP server ready!')
-    })
+    if (config.port) {
+        server.listen(config.port, () => {
+            console.log('eroc: 🍔 HTTP server ready!')
+        })
+    }
 
     return { app, server }
 }
@@ -114,6 +116,8 @@ cardinal.setup = async (middle) => {
             api.methods.forEach((m) => console.log(`    ${m.padEnd(6)}${api.path}`))
         })
     }
+
+    config.emit('cardinal:setup_done')
 }
 
 cardinal.boot = async () => {
@@ -160,8 +164,12 @@ cardinal.boot = async () => {
 
 cardinal.shutdown = async () => {
     const mongoose = require('mongoose')
+    const rediser = require('./rediser')
 
-    await mongoose.disconnect()
+    await Promise.all([
+        mongoose.disconnect(),
+        rediser.client.quit(),
+    ])
 }
 
 cardinal.seek = async () => {
