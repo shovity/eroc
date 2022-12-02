@@ -6,7 +6,6 @@ const slack = {}
 slack.send = async (message, option = {}) => {
     await config.deferred.config
 
-    console.log(config)
     check(config.slack_token, 'Missing  config.slack_token')
 
     if (typeof message === 'object') {
@@ -23,6 +22,10 @@ slack.send = async (message, option = {}) => {
                 footer: option.footer || `Slack API | ${config.service} | ${config.env}`,
             },
         ],
+    }
+
+    if (config.env === 'local' && !config.slack_enable_local) {
+        return console.info('slack: send -', message)
     }
 
     if (config.env !== 'pro' && config.slack_test_channel) {
