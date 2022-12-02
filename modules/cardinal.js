@@ -166,10 +166,7 @@ cardinal.shutdown = async () => {
     const mongoose = require('mongoose')
     const rediser = require('./rediser')
 
-    await Promise.all([
-        mongoose.disconnect(),
-        rediser.client.quit(),
-    ])
+    await Promise.all([mongoose.disconnect(), rediser.client.quit()])
 }
 
 cardinal.seek = async () => {

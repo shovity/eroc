@@ -75,6 +75,28 @@ const rio = (req, res, next) => {
                 require: permissions,
             })
         },
+        or: async (permission) => {
+            const permissions = permission.split(' ').filter((p) => p)
+            const user = await vanguard.getUser(req)
+            const client = await vanguard.getClient(req)
+
+            const has = []
+
+            if (user) {
+                has.push(...user.roles)
+            }
+
+            if (client) {
+                has.push(...client.permissions)
+            }
+
+            console.log(has)
+
+            check(util.intersect(has, permissions), {
+                message: 'Insufficient permission',
+                require: permissions,
+            })
+        },
     }
 
     res.success = (data, option) => {

@@ -1,5 +1,4 @@
 const rediser = require('./rediser')
-const config = require('./config')
 
 const event = {}
 
