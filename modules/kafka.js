@@ -1,15 +1,12 @@
 const { Kafka, logLevel } = require('kafkajs')
 const config = require('./config')
+const util = require('./util')
 
 const kafka = {
     consumer: {},
-
-    setting: {
-        broker_uri: config.kafka_broker_uri || '',
-    },
+    producer: null,
+    ready: util.deferred(),
 }
-
-const setting = kafka.setting
 
 const logger = () => {
     return ({ log }) => {
@@ -19,21 +16,29 @@ const logger = () => {
     }
 }
 
-kafka.client = new Kafka({
-    clientId: config.service,
-    brokers: setting.broker_uri.split(','),
-    logLevel: logLevel.WARN,
-    logCreator: logger,
+const boot = async () => {
+    await config.deferred.config
+    check(config.kafka_broker_uri, 'Missing config.kafka_broker_uri')
 
-    retry: {
-        initialRetryTime: 200,
-        retries: 100,
-    },
-})
+    kafka.client = new Kafka({
+        clientId: config.service,
+        brokers: config.kafka_broker_uri.split(','),
+        logLevel: logLevel.WARN,
+        logCreator: logger,
 
-console.log(`kafka: 🚕 Connecting - ${setting.broker_uri}`)
+        retry: {
+            initialRetryTime: 200,
+            retries: 100,
+        },
+    })
+
+    kafka.ready.resolve()
+    console.log(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
+}
 
 kafka.pub = async (topic, message = null) => {
+    await kafka.ready
+
     if (!kafka.producer) {
         kafka.producer = kafka.client.producer()
         await kafka.producer.connect()
@@ -56,6 +61,8 @@ kafka.pub = async (topic, message = null) => {
  * @param {function} handle
  */
 kafka.sub = async (topic, handle, option) => {
+    await kafka.ready
+
     if (typeof option === 'function') {
         const tmp = handle
         handle = option
@@ -106,5 +113,7 @@ kafka.sub = async (topic, handle, option) => {
         },
     })
 }
+
+boot().catch(console.error)
 
 module.exports = kafka

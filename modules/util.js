@@ -24,4 +24,21 @@ util.intersect = (target, destination) => {
     return destination.find((e) => target.indexOf(e) !== -1)
 }
 
+util.deferred = () => {
+    const holder = {}
+
+    const promise = new Promise((resolve, reject) => {
+        holder.resolve = resolve
+        holder.reject = reject
+    })
+
+    return Object.assign(promise, holder)
+}
+
+util.sleep = async (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms)
+    })
+}
+
 module.exports = util

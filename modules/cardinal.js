@@ -117,7 +117,7 @@ cardinal.setup = async (middle) => {
         })
     }
 
-    config.emit('cardinal:setup_done')
+    config.deferred.setup.resolve()
 }
 
 cardinal.boot = async () => {
@@ -128,10 +128,11 @@ cardinal.boot = async () => {
         Object.assign(config, await rediser.hget('eroc_config', '*'), await rediser.hget('eroc_config', config.service))
     }
 
+    config.deferred.config.resolve()
+    console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
+
     // Check required config
     check(config.service, 'Missing config.service')
-
-    console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
 
     if (config.mongo_uri) {
         const mongoose = require('mongoose')

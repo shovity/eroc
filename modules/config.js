@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
-const Event = require('events')
+const util = require('./util')
 
-const config = new Event()
+const config = {}
 
 Object.assign(config, {
     app_dir: path.dirname(require.main.filename),
@@ -15,12 +15,11 @@ Object.assign(config, {
     seek_tasks: 'tasks',
     seek_routers: 'routers',
     seek_events: 'events',
-    promise: {},
+    deferred: {},
 })
 
-config.promise.setupDone = new Promise((resolve) => {
-    config.on('cardinal:setup_done', resolve)
-})
+config.deferred.config = util.deferred()
+config.deferred.setup = util.deferred()
 
 // Load project config.js
 if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
