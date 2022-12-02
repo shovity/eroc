@@ -1,17 +1,14 @@
 const requester = require('./requester')
 const config = require('./config')
 
-check(config.slacker_token, 'Missing  config.slacker_token')
+const slack = {}
 
-const slacker = {
-    setting: {
-        token: config.slacker_token,
-    },
-}
+slack.send = async (message, option = {}) => {
+    await config.deferred.config
 
-const setting = slacker.setting
+    console.log(config)
+    check(config.slack_token, 'Missing  config.slack_token')
 
-slacker.send = async (message, option = {}) => {
     if (typeof message === 'object') {
         option = message
     }
@@ -23,28 +20,24 @@ slacker.send = async (message, option = {}) => {
                 color: option.color || '#00c0ef',
                 title: option.title || '',
                 text: message || '',
-                footer: option.footer || 'Slack API',
+                footer: option.footer || `Slack API | ${config.service} | ${config.env}`,
             },
         ],
     }
 
-    if (config.env !== 'pro') {
-        body.channel = config.slacker_test_channel
+    if (config.env !== 'pro' && config.slack_test_channel) {
+        body.channel = config.slack_test_channel
     }
 
     return requester
         .post('https://slack.com/api/chat.postMessage', body, {
             header: {
-                Authorization: `Bearer ${setting.token}`,
+                Authorization: `Bearer ${config.slack_token}`,
             },
         })
-        .then((res) => {
-            // console.log(res)
-            return res
-        })
         .catch((error) => {
-            console.error('slacker: send message to slack error:', error)
+            console.error('slack: Send message to slack error:', error)
         })
 }
 
-module.exports = slacker
+module.exports = slack
