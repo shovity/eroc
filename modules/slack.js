@@ -14,7 +14,7 @@ slack.send = async (message, option = {}) => {
     }
 
     const body = option.raw || {
-        channel: option.channel,
+        channel: option.channel || config.slack_default_channel,
         attachments: option.attachments || [
             {
                 color: option.color || '#00c0ef',
