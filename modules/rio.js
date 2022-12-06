@@ -58,24 +58,32 @@ const rio = (req, res, next) => {
         login: async () => {
             check(await vanguard.getUser(req), 'Require login')
         },
-        role: async (role) => {
+        role: async (role, interrupt = true) => {
             const roles = role.split(' ').filter((r) => r)
             const user = await vanguard.getUser(req)
 
-            check(user, 'Require login')
-            check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
+            if (interrupt) {
+                check(user, 'Require login')
+                check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
+            } else {
+                return user && util.intersect(user.roles, roles)
+            }
         },
-        client: async (permission) => {
+        client: async (permission, interrupt = true) => {
             const permissions = permission.split(' ').filter((p) => p)
             const client = await vanguard.getClient(req)
 
-            check(client, 'Require client key')
-            check(util.intersect(client.permissions, permissions), {
-                message: 'Insufficient permission',
-                require: permissions,
-            })
+            if (interrupt) {
+                check(client, 'Require client key')
+                check(util.intersect(client.permissions, permissions), {
+                    message: 'Insufficient permission',
+                    require: permissions,
+                })
+            } else {
+                return client && util.intersect(client.permissions, permissions)
+            }
         },
-        or: async (permission) => {
+        or: async (permission, interrupt = true) => {
             const permissions = permission.split(' ').filter((p) => p)
             const user = await vanguard.getUser(req)
             const client = await vanguard.getClient(req)
@@ -90,12 +98,14 @@ const rio = (req, res, next) => {
                 has.push(...client.permissions)
             }
 
-            console.log(has)
-
-            check(util.intersect(has, permissions), {
-                message: 'Insufficient permission',
-                require: permissions,
-            })
+            if (interrupt) {
+                check(util.intersect(has, permissions), {
+                    message: 'Insufficient permission',
+                    require: permissions,
+                })
+            } else {
+                return util.intersect(has, permissions)
+            }
         },
     }
 
