@@ -90,10 +90,7 @@ cardinal.setup = async (middle) => {
 
         if (typeof error === 'object') {
             Object.assign(response, error)
-
-            if (error._message) {
-                response.message = error._message
-            }
+            response.message = error.message || error._message || 'Unknow error'
         } else if (typeof error === 'string') {
             response.message = error
         }
