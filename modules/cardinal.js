@@ -44,7 +44,6 @@ cardinal.setup = async (middle) => {
     app.set('views', path.resolve(config.app_dir, config.seek_views))
     app.set('view engine', 'html')
 
-    app.use(rio)
     app.use(express.json({ limit: '10mb' }))
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
@@ -52,7 +51,10 @@ cardinal.setup = async (middle) => {
 
     await cardinal.boot()
 
+    app.use(rio.util())
     app.use(vanguard.detect())
+    app.use(rio.root())
+
     middle && middle(app)?.catch(console.error)
 
     await cardinal.seek()

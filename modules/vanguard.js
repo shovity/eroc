@@ -1,41 +1,69 @@
 const jwt = require('./jwt')
 const requester = require('./requester')
 const config = require('./config')
-const util = require('./util')
 
 const vanguard = {}
 
 /**
- * Get and verify user JWT from header or cooke
- * @param {Request} req
- * @returns {Object} Token payload
+ * Just detect 🔍 if request is authenticated
+ * and build req.u.user
+ * and build req.u.client
+ * @returns {Function} Middleware
  */
-vanguard.getUser = async (req) => {
-    const token = req.headers.token || req.cookies.token
+vanguard.detect = () => {
+    return async (req, res, next) => {
+        const handle = async () => {
+            // Detect CMS token
+            if (!req.u.user) {
+                const token = req.headers['cms-token']
 
-    if (token) {
-        return await jwt.verify(token)
+                if (token) {
+                    const data = await jwt.verify(token, { secret: config.cms_jwt_secret })
+                    const { data: user } = await requester.get(`user/in/users/${data.sub}`)
+
+                    check(user, 'Missing cms user')
+                    req.u.user = user
+                    req.u.user.tiat = Infinity
+                }
+            }
+
+            // Detect main token
+            if (!req.u.user) {
+                const token = req.headers.token || req.cookies.token
+
+                if (token) {
+                    req.u.user = await jwt.verify(token).catch((error) => {
+                        req.cookies.token && res.u.cookie('token', '')
+                        return next(error)
+                    })
+                }
+            }
+
+            // Detect client
+            if (!req.u.client) {
+                const client = req.headers.client
+
+                if (client && config.clients?.length) {
+                    req.u.client = config.clients.find((c) => c.key === client)
+                }
+            }
+
+            next()
+        }
+
+        handle().catch((error) => {
+            res.u.cookie('token', '')
+            console.error(error)
+            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
+        })
     }
 }
 
 /**
- * Get client from header and data from config
- * @param {Request} req
- * @returns {Object} Client plain object
- */
-vanguard.getClient = async (req) => {
-    const client = req.headers.client
-
-    if (client && config.clients?.length) {
-        const data = config.clients.find((c) => c.key === client)
-        check(data, 'Client not found')
-        return data
-    }
-}
-
-/**
- * Authentication for gateway
+ * Authentication for gateway 🧱
+ * vanguard.gate() must use after vanguard.detect()
  * @param {Object} option { week: Reject access when missing token }
+ * @param {Object} option { page: Response human-readable }
  * @returns {Function} Middleware
  */
 vanguard.gate = (option = {}) => {
@@ -43,14 +71,12 @@ vanguard.gate = (option = {}) => {
 
     return (req, res, next) => {
         const handle = async () => {
-            const token = req.headers.token || req.cookies.token
+            if (!req.u.user && !req.u.client) {
+                // Missing authentication by vanguard.detect
 
-            if (!token) {
                 if (option.weak) {
                     return next()
                 }
-
-                res.u.cookie('token', '')
 
                 if (option.page) {
                     return res.redirect(`/login?next=${req.originalUrl}`)
@@ -59,23 +85,22 @@ vanguard.gate = (option = {}) => {
                 }
             }
 
-            req.u.user = await jwt.verify(token).catch((error) => {
-                res.u.cookie('token', '')
-                return next(error)
-            })
-
             const tiat = await rediser.hget('user_tiat', req.u.user._id)
 
             if (tiat === null) {
-                if (option.api) {
-                    return res.error('user tiat not found')
-                } else {
-                    res.u.cookie('token', '')
+                res.u.cookie('token', '')
+
+                if (option.page) {
                     return res.redirect(`/login?next=${req.originalUrl}`)
+                } else {
+                    return res.error({ message: 'User tiat not found' }, { code: 401 })
                 }
             }
 
             if (req.u.user.iat < tiat) {
+                // Ensure token refresh
+
+                const token = req.headers.token || req.cookies.token
                 const { data } = await requester.post('user/v1/users/token', { token })
                 req.u.user = await jwt.verify(data.token)
 
@@ -99,60 +124,6 @@ vanguard.gate = (option = {}) => {
             console.error(error)
             return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
         })
-    }
-}
-
-/**
- * Just detect if request is authenticated
- * and build req.u.user
- * @returns Middleware
- */
-vanguard.detect = () => {
-    return async (req, res, next) => {
-        const handle = async () => {
-            if (!req.u.user) {
-                const token = req.headers.token || req.cookies.token
-
-                if (token) {
-                    req.u.user = await jwt.verify(token).catch((error) => {
-                        req.cookies.token && res.u.cookie('token', '')
-                        return next(error)
-                    })
-                }
-            }
-
-            if (!req.u.client) {
-                const client = req.headers.client
-
-                if (client && config.clients?.length) {
-                    req.u.client = config.clients.find((c) => c.key === client)
-                }
-            }
-
-            next()
-        }
-
-        handle().catch((error) => {
-            res.u.cookie('token', '')
-            console.error(error)
-            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
-        })
-    }
-}
-
-vanguard.role = (role, reject) => {
-    const roles = role.split(' ').filter((r) => r)
-
-    return (req, res, next) => {
-        if (!util.intersect(req.u.user?.roles, roles)) {
-            if (reject) {
-                reject()
-            } else {
-                return res.error({ message: '403 Forbidden', require: roles }, { code: 403 })
-            }
-        }
-
-        return next()
     }
 }
 

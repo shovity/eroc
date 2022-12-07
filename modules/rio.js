@@ -1,7 +1,7 @@
 const Event = require('events')
-
-const vanguard = require('./vanguard')
 const util = require('./util')
+
+const rio = {}
 
 const genNextUrl = (data, req) => {
     if (!Array.isArray(data)) {
@@ -23,137 +23,146 @@ const genNextUrl = (data, req) => {
         .join('&')}`
 }
 
-const rio = (req, res, next) => {
-    req.u = res.u = new Event()
+rio.util = () => {
+    return (req, res, next) => {
+        req.u = new Event()
+        res.u = req.u
 
-    req.u.cookie = (key, value, option = {}) => {
-        option = {
-            maxAge: 31104000000,
-            ...option,
+        req.u.cookie = (key, value, option = {}) => {
+            option = {
+                maxAge: 31104000000,
+                ...option,
+            }
+
+            res.cookie(key, value, option)
         }
 
-        res.cookie(key, value, option)
+        next()
     }
+}
 
-    req.gp = (key, defaultValue, validate) => {
-        let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)
-        check(value !== undefined, `Missing param ${key}`)
+rio.root = () => {
+    return (req, res, next) => {
+        req.gp = (key, defaultValue, validate) => {
+            let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)
+            check(value !== undefined, `Missing param ${key}`)
 
-        if (typeof validate === 'function') {
-            const converted = validate(value)
+            if (typeof validate === 'function') {
+                const converted = validate(value)
 
-            if (converted !== undefined) {
-                value = converted
+                if (converted !== undefined) {
+                    value = converted
+                }
+            } else if (Array.isArray(validate)) {
+                check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
+            } else if (validate instanceof RegExp) {
+                check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
             }
-        } else if (Array.isArray(validate)) {
-            check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
-        } else if (validate instanceof RegExp) {
-            check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
+
+            return value
         }
 
-        return value
-    }
+        res.success = (data, option) => {
+            const response = {}
 
-    req.auth = {
-        login: async () => {
-            check(await vanguard.getUser(req), 'Require login')
-        },
-        role: async (role, interrupt = true) => {
-            const roles = role.split(' ').filter((r) => r)
-            const user = await vanguard.getUser(req)
-
-            if (interrupt) {
-                check(user, 'Require login')
-                check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
-            } else {
-                return user && util.intersect(user.roles, roles)
-            }
-        },
-        client: async (permission, interrupt = true) => {
-            const permissions = permission.split(' ').filter((p) => p)
-            const client = await vanguard.getClient(req)
-
-            if (interrupt) {
-                check(client, 'Require client key')
-                check(util.intersect(client.permissions, permissions), {
-                    message: 'Insufficient permission',
-                    require: permissions,
-                })
-            } else {
-                return client && util.intersect(client.permissions, permissions)
-            }
-        },
-        or: async (permission, interrupt = true) => {
-            const permissions = permission.split(' ').filter((p) => p)
-            const user = await vanguard.getUser(req)
-            const client = await vanguard.getClient(req)
-
-            const has = []
-
-            if (user) {
-                has.push(...user.roles)
+            if (!option) {
+                option = {}
             }
 
-            if (client) {
-                has.push(...client.permissions)
+            if (option.meta) {
+                response.meta = option.meta
             }
 
-            if (interrupt) {
-                check(util.intersect(has, permissions), {
-                    message: 'Insufficient permission',
-                    require: permissions,
-                })
-            } else {
-                return util.intersect(has, permissions)
+            if (data !== undefined) {
+                response.data = data
             }
-        },
-    }
 
-    res.success = (data, option) => {
-        const response = {}
+            if (req.gp('limit', null)) {
+                response.meta = response.meta || {}
+                response.meta.next = genNextUrl(data, req)
+            }
 
-        if (!option) {
-            option = {}
+            res.status(option.code || 200)
+            res.json(response)
+
+            res.u.emit('success', response)
         }
 
-        if (option.meta) {
-            response.meta = option.meta
-        }
+        res.error = (error, option = {}) => {
+            res.status(option.code || 400)
 
-        if (data !== undefined) {
-            response.data = data
-        }
-
-        if (req.gp('limit', null)) {
-            response.meta = response.meta || {}
-            response.meta.next = genNextUrl(data, req)
-        }
-
-        res.status(option.code || 200)
-        res.json(response)
-
-        res.u.emit('success', response)
-    }
-
-    res.error = (error, option = {}) => {
-        res.status(option.code || 400)
-
-        if (typeof error === 'string') {
-            error = {
-                message: error,
+            if (typeof error === 'string') {
+                error = {
+                    message: error,
+                }
             }
+
+            res.json({
+                error: {
+                    url: req.originalUrl,
+                    method: req.method,
+                    ...error,
+                },
+            })
         }
 
-        res.json({
-            error: {
-                url: req.originalUrl,
-                method: req.method,
-                ...error,
+        req.auth = {
+            login: async () => {
+                check(req.u.user, 'Require login')
             },
-        })
-    }
+            role: async (role, interrupt = true) => {
+                const roles = role.split(' ').filter((r) => r)
+                const user = req.u.user
 
-    next()
+                if (interrupt) {
+                    check(user, 'Require login')
+                    check(util.intersect(user.roles, roles), { message: '403 Forbidden', require: roles })
+                } else {
+                    return user && util.intersect(user.roles, roles)
+                }
+            },
+            client: async (permission, interrupt = true) => {
+                const permissions = permission.split(' ').filter((p) => p)
+                const client = req.u.client
+
+                if (interrupt) {
+                    check(client, 'Require client key')
+                    check(util.intersect(client.permissions, permissions), {
+                        message: 'Insufficient permission',
+                        require: permissions,
+                    })
+                } else {
+                    return client && util.intersect(client.permissions, permissions)
+                }
+            },
+            or: async (permission, interrupt = true) => {
+                const permissions = permission.split(' ').filter((p) => p)
+                const user = req.u.user
+                const client = req.u.client
+
+                const has = []
+
+                if (user) {
+                    has.push(...user.roles)
+                }
+
+                if (client) {
+                    has.push(...client.permissions)
+                }
+
+                if (interrupt) {
+                    check(util.intersect(has, permissions), {
+                        message: 'Insufficient permission',
+                        require: permissions,
+                    })
+                } else {
+                    return util.intersect(has, permissions)
+                }
+            },
+        }
+
+        next()
+    }
 }
 
 module.exports = rio
