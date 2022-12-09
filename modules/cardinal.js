@@ -49,11 +49,13 @@ cardinal.setup = async (middle) => {
     app.use(cookieParser())
     app.use(cors())
 
+    app.use(rio.root())
+
     await cardinal.boot()
 
     app.use(rio.util())
     app.use(vanguard.detect())
-    app.use(rio.root())
+    app.use(rio.auth())
 
     middle && middle(app)?.catch(console.error)
 

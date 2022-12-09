@@ -23,24 +23,6 @@ const genNextUrl = (data, req) => {
         .join('&')}`
 }
 
-rio.util = () => {
-    return (req, res, next) => {
-        req.u = new Event()
-        res.u = req.u
-
-        req.u.cookie = (key, value, option = {}) => {
-            option = {
-                maxAge: 31104000000,
-                ...option,
-            }
-
-            res.cookie(key, value, option)
-        }
-
-        next()
-    }
-}
-
 rio.root = () => {
     return (req, res, next) => {
         req.gp = (key, defaultValue, validate) => {
@@ -106,6 +88,30 @@ rio.root = () => {
             })
         }
 
+        next()
+    }
+}
+
+rio.util = () => {
+    return (req, res, next) => {
+        req.u = new Event()
+        res.u = req.u
+
+        req.u.cookie = (key, value, option = {}) => {
+            option = {
+                maxAge: 31104000000,
+                ...option,
+            }
+
+            res.cookie(key, value, option)
+        }
+
+        next()
+    }
+}
+
+rio.auth = () => {
+    return (req, res, next) => {
         req.auth = {
             login: async () => {
                 check(req.u.user, 'Require login')
