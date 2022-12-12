@@ -85,34 +85,36 @@ vanguard.gate = (option = {}) => {
                 }
             }
 
-            const tiat = await rediser.hget('user_tiat', req.u.user._id)
+            if (req.u.user) {
+                const tiat = await rediser.hget('user_tiat', req.u.user._id)
 
-            if (tiat === null) {
-                res.u.cookie('token', '')
-
-                if (option.page) {
-                    return res.redirect(`/login?next=${req.originalUrl}`)
-                } else {
-                    return res.error({ message: 'User tiat not found' }, { code: 401 })
+                if (tiat === null) {
+                    res.u.cookie('token', '')
+    
+                    if (option.page) {
+                        return res.redirect(`/login?next=${req.originalUrl}`)
+                    } else {
+                        return res.error({ message: 'User tiat not found' }, { code: 401 })
+                    }
                 }
-            }
-
-            if (req.u.user.iat < tiat) {
-                // Ensure token refresh
-
-                const token = req.headers.token || req.cookies.token
-                const { data } = await requester.post('user/v1/users/token', { token })
-                req.u.user = await jwt.verify(data.token)
-
-                if (req.headers.token) {
-                    return res.error({
-                        message: 'token_expired',
-                        token: data.token,
-                    })
-                } else {
-                    res.u.cookie('token', data.token)
-                    req.cookies.token = data.token
-                    req.headers.cookie = req.headers.cookie.replace(`token=${token}`, `token=${data.token}`)
+    
+                if (req.u.user.iat < tiat) {
+                    // Ensure token refresh
+    
+                    const token = req.headers.token || req.cookies.token
+                    const { data } = await requester.post('user/v1/users/token', { token })
+                    req.u.user = await jwt.verify(data.token)
+    
+                    if (req.headers.token) {
+                        return res.error({
+                            message: 'token_expired',
+                            token: data.token,
+                        })
+                    } else {
+                        res.u.cookie('token', data.token)
+                        req.cookies.token = data.token
+                        req.headers.cookie = req.headers.cookie.replace(`token=${token}`, `token=${data.token}`)
+                    }
                 }
             }
 
