@@ -13,46 +13,34 @@ const vanguard = {}
 vanguard.detect = () => {
     return async (req, res, next) => {
         const handle = async () => {
+            //* Main header > CMS header > Main cookie
+
             // Detect CMS token
-            if (!req.u.user) {
-                const token = req.headers['cms-token']
+            if (!req.headers.token && req.headers['cms-token']) {
+                const data = await jwt.verify(req.headers['cms-token'], { secret: config.cms_jwt_secret })
+                const { data: user } = await requester.get(`user/in/users/${data.sub}`)
 
-                if (token) {
-                    const data = await jwt.verify(token, { secret: config.cms_jwt_secret })
-                    const { data: user } = await requester.get(`user/in/users/${data.sub}`)
-
-                    check(user, 'Missing cms user')
-                    req.u.user = user
-                    req.u.user.tiat = Infinity
-                }
+                check(user, 'Missing cms user')
+                req.u.user = user
+                req.u.user.tiat = Infinity
+                req.headers.token = jwt.sign(req.u.user)
             }
 
             // Detect main token
-            if (!req.u.user) {
-                const token = req.headers.token || req.cookies.token
-
-                if (token) {
-                    req.u.user = await jwt.verify(token).catch((error) => {
-                        req.cookies.token && res.u.cookie('token', '')
-                        return next(error)
-                    })
-                }
+            if (!req.u.user && (req.headers.token || req.cookies.token)) {
+                req.u.user = await jwt.verify(req.headers.token || req.cookies.token)
             }
 
             // Detect client
-            if (!req.u.client) {
-                const client = req.headers.client
-
-                if (client && config.clients?.length) {
-                    req.u.client = config.clients.find((c) => c.key === client)
-                }
+            if (req.headers.client && config.clients?.length) {
+                req.u.client = config.clients.find((c) => c.key === req.headers.client)
             }
 
             next()
         }
 
         handle().catch((error) => {
-            res.u.cookie('token', '')
+            req.cookies.token && res.u.cookie('token', '')
             console.error(error)
             return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
         })
@@ -90,21 +78,21 @@ vanguard.gate = (option = {}) => {
 
                 if (tiat === null) {
                     res.u.cookie('token', '')
-    
+
                     if (option.page) {
                         return res.redirect(`/login?next=${req.originalUrl}`)
                     } else {
                         return res.error({ message: 'User tiat not found' }, { code: 401 })
                     }
                 }
-    
+
                 if (req.u.user.iat < tiat) {
                     // Ensure token refresh
-    
+
                     const token = req.headers.token || req.cookies.token
                     const { data } = await requester.post('user/v1/users/token', { token })
                     req.u.user = await jwt.verify(data.token)
-    
+
                     if (req.headers.token) {
                         return res.error({
                             message: 'token_expired',

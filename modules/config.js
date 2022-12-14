@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 const util = require('./util')
 
@@ -20,15 +19,5 @@ Object.assign(config, {
 
 config.deferred.config = util.deferred()
 config.deferred.setup = util.deferred()
-
-// Load project config.js
-if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
-    require(path.join(config.app_dir, 'config.js'))(config)
-}
-
-// Override reids_uri from environment
-if (process.env.REDIS_URI) {
-    config.redis_uri = process.env.REDIS_URI
-}
 
 module.exports = config

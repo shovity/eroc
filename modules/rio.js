@@ -23,7 +23,7 @@ const genNextUrl = (data, req) => {
         .join('&')}`
 }
 
-rio.root = () => {
+rio.base = () => {
     return (req, res, next) => {
         req.gp = (key, defaultValue, validate) => {
             let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)

@@ -1,10 +1,23 @@
 const { resolve } = require('path')
-const { readdir } = require('fs').promises
+const fs = require('fs').promises
 
 const util = {}
 
+util.readble = async (dir) => {
+    if (!dir) {
+        return false
+    }
+
+    try {
+        await fs.access(dir)
+        return true
+    } catch (error) {
+        return false
+    }
+}
+
 util.getFiles = async (dir) => {
-    const dirents = await readdir(dir, { withFileTypes: true })
+    const dirents = await fs.readdir(dir, { withFileTypes: true })
 
     const files = await Promise.all(
         dirents.map((dirent) => {
