@@ -28,7 +28,7 @@ slack.send = async (message, option = {}) => {
         return console.info('slack: send -', message)
     }
 
-    if (config.env !== 'pro' && config.slack_test_channel) {
+    if (config.env !== 'prod' && config.slack_test_channel) {
         body.channel = config.slack_test_channel
     }
 

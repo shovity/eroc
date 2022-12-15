@@ -217,7 +217,7 @@ cardinal.seek = async () => {
         cardinal.app.use(
             match,
             express.static(path.join(config.app_dir, config.seek_static), {
-                maxAge: config.env === 'pro' ? '1y' : 0,
+                maxAge: config.env === 'prod' ? '1y' : 0,
             }),
         )
 
