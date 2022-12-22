@@ -24,12 +24,6 @@ cardinal.create = (middle) => {
         console.log('eroc: ERROR - Setup application failed:', error)
     })
 
-    if (config.port) {
-        server.listen(config.port, () => {
-            console.log('eroc: 🍔 HTTP server ready!')
-        })
-    }
-
     return { app, server }
 }
 
@@ -119,46 +113,17 @@ cardinal.setup = async (middle) => {
         })
     }
 
+    if (config.port) {
+        cardinal.server.listen(config.port, () => {
+            console.log(`eroc: 🍔 HTTP server ready! - port=${config.port}`)
+        })
+    }
+
     config.deferred.setup.resolve()
 }
 
 cardinal.boot = async () => {
-    // Load config.js
-    if (await util.readble(path.join(config.app_dir, 'config.js'))) {
-        const handle = require(path.join(config.app_dir, 'config.js'))
-
-        if (typeof handle === 'function') {
-            handle(config)
-        } else {
-            console.error('cardinal: config.js must be a function')
-        }
-    }
-
-    // Override reids_uri from environment
-    if (process.env.REDIS_URI) {
-        config.redis_uri = process.env.REDIS_URI
-    }
-
-    // Load centralized configuration
-    if (config.redis_uri) {
-        const rediser = require('./rediser')
-        check(config.service, 'Missing config.service')
-        Object.assign(config, await rediser.hget('eroc_config', '*'), await rediser.hget('eroc_config', config.service))
-    }
-
-    // Load project config.override.js
-    if (await util.readble(path.join(config.app_dir, 'config.override.js'))) {
-        const handle = require(path.join(config.app_dir, 'config.override.js'))
-
-        if (typeof handle === 'function') {
-            handle(config)
-        } else {
-            console.error('cardinal: config.override.js must be a function')
-        }
-    }
-
-    console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
-    config.deferred.config.resolve()
+    await config.deferred.config
 
     // Check required config
     check(config.service, 'Missing config.service')
@@ -169,10 +134,6 @@ cardinal.boot = async () => {
         const connect = () => {
             mongoose
                 .connect(config.mongo_uri, {
-                    useUnifiedTopology: true,
-                    useNewUrlParser: true,
-                    useCreateIndex: true,
-
                     auth: {
                         authSource: 'admin',
                     },
@@ -187,7 +148,6 @@ cardinal.boot = async () => {
                 })
         }
 
-        mongoose.set('useFindAndModify', false)
         connect()
     }
 }
@@ -201,7 +161,7 @@ cardinal.seek = async () => {
     if (await util.readble(config.seek_routers)) {
         try {
             const router = await scanner.router(config.seek_routers)
-            cardinal.app.use(path.join('/', config.service), router)
+            cardinal.app.use(path.join('/', config.router_prefix || config.service), router)
         } catch (error) {
             console.log('eroc: ERROR - seek router false', error)
         }
@@ -212,7 +172,7 @@ cardinal.seek = async () => {
     }
 
     if (await util.readble(config.seek_static)) {
-        const match = path.join('/', config.service, 'static')
+        const match = path.join('/', config.router_prefix || config.service, 'static')
 
         cardinal.app.use(
             match,

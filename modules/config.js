@@ -1,3 +1,4 @@
+const fs = require('fs')
 const path = require('path')
 const util = require('./util')
 
@@ -6,7 +7,7 @@ const config = {}
 Object.assign(config, {
     app_dir: path.dirname(require.main.filename),
     port: 3000,
-    env: 'dev',
+    env: 'local',
     secret: 'terces',
     seek_static: 'static',
     seek_public: 'public',
@@ -19,5 +20,52 @@ Object.assign(config, {
 
 config.deferred.config = util.deferred()
 config.deferred.setup = util.deferred()
+
+const package = require(path.join(config.app_dir, 'package.json'))
+config.service = package.name
+
+// Load config.js
+if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
+    const handle = require(path.join(config.app_dir, 'config.js'))
+
+    if (typeof handle === 'function') {
+        handle(config)
+    } else {
+        console.error('config: config.js must be a function')
+    }
+}
+
+const main = async () => {
+    // Override reids_uri from environment
+    if (process.env.REDIS_URI) {
+        config.redis_uri = process.env.REDIS_URI
+    }
+
+    // Load centralized configuration
+    if (config.redis_uri) {
+        const rediser = require('./rediser')
+        check(config.service, 'Missing config.service')
+
+        Object.assign(config, await rediser.hget('eroc_config', '*'), await rediser.hget('eroc_config', config.service))
+    }
+
+    // Load project config.override.js
+    if (fs.existsSync(path.join(config.app_dir, 'config.override.js'))) {
+        const handle = require(path.join(config.app_dir, 'config.override.js'))
+
+        if (typeof handle === 'function') {
+            handle(config)
+        } else {
+            console.error('cardinal: config.override.js must be a function')
+        }
+    }
+
+    console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
+    config.deferred.config.resolve()
+}
+
+main().catch((error) => {
+    console.error('config: Load config error', error)
+})
 
 module.exports = config
