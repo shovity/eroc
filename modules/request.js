@@ -3,16 +3,16 @@ const AbortController = require('abort-controller')
 
 const config = require('./config')
 
-const requester = {
+const request = {
     setting: {
         header: {},
-        base: config.requester_base,
+        base: config.request_base,
     },
 }
 
-const setting = requester.setting
+const setting = request.setting
 
-requester.fetch = ({ url, method, body, param, option }) => {
+request.fetch = ({ url, method, body, param, option }) => {
     option = Object.assign(
         {
             // parse: 'json',
@@ -93,8 +93,8 @@ requester.fetch = ({ url, method, body, param, option }) => {
         })
 }
 
-requester.get = (url, param, option) => {
-    return requester.fetch({
+request.get = (url, param, option) => {
+    return request.fetch({
         method: 'GET',
         url,
         param,
@@ -102,8 +102,8 @@ requester.get = (url, param, option) => {
     })
 }
 
-requester.post = (url, body, option) => {
-    return requester.fetch({
+request.post = (url, body, option) => {
+    return request.fetch({
         method: 'POST',
         url,
         body,
@@ -111,8 +111,8 @@ requester.post = (url, body, option) => {
     })
 }
 
-requester.put = (url, body, option) => {
-    return requester.fetch({
+request.put = (url, body, option) => {
+    return request.fetch({
         method: 'PUT',
         url,
         body,
@@ -120,8 +120,8 @@ requester.put = (url, body, option) => {
     })
 }
 
-requester.patch = (url, body, option) => {
-    return requester.fetch({
+request.patch = (url, body, option) => {
+    return request.fetch({
         method: 'PATCH',
         url,
         body,
@@ -129,8 +129,8 @@ requester.patch = (url, body, option) => {
     })
 }
 
-requester.delete = (url, body, option) => {
-    return requester.fetch({
+request.delete = (url, body, option) => {
+    return request.fetch({
         method: 'DELETE',
         url,
         body,
@@ -138,4 +138,4 @@ requester.delete = (url, body, option) => {
     })
 }
 
-module.exports = requester
+module.exports = request

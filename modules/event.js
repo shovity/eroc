@@ -1,10 +1,10 @@
-const rediser = require('./rediser')
+const redis = require('./redis')
 
 const event = {}
 
 event.emit = (name, data) => {
     const channel = `event.${name}`
-    rediser.pub(channel, data)
+    redis.pub(channel, data)
 }
 
 event.on = (name, handle) => {
@@ -22,7 +22,7 @@ event.on = (name, handle) => {
             })
     }
 
-    rediser.sub(channel, wrap)
+    redis.sub(channel, wrap)
 }
 
 module.exports = event

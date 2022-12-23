@@ -1,4 +1,4 @@
-const requester = require('./requester')
+const request = require('./request')
 const config = require('./config')
 
 const slack = {}
@@ -32,7 +32,7 @@ slack.send = async (message, option = {}) => {
         body.channel = config.slack_test_channel
     }
 
-    return requester
+    return request
         .post('https://slack.com/api/chat.postMessage', body, {
             header: {
                 Authorization: `Bearer ${config.slack_token}`,

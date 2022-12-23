@@ -4,6 +4,7 @@
   "tabWidth": 2,
   "semi": false,
   "printWidth": 124,
+  "quoteProps": "consistent",
 
   "overrides": [
     {

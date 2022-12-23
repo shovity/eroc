@@ -32,7 +32,7 @@ scanner.router = async (dir) => {
         router.use(matchs.join('/'), module)
     }
 
-    return router
+    return { router, paths }
 }
 
 module.exports = scanner

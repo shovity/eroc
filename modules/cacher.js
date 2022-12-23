@@ -1,6 +1,5 @@
 const crypto = require('crypto')
-
-const rediser = require('./rediser')
+const redis = require('./redis')
 
 const cacher = {}
 
@@ -24,7 +23,7 @@ cacher.middle = (option) => {
         const key = `cacher:middle:${option.prefix}:${base}:${param ? md5sum.update(param).digest('base64') : ''}`
 
         if (req.headers.cacher !== 'disable') {
-            const data = await rediser.get(key)
+            const data = await redis.get(key)
 
             if (data) {
                 res.append('cacher', 'hit')
@@ -37,8 +36,8 @@ cacher.middle = (option) => {
         }
 
         res.u.on('success', (data) => {
-            rediser.set(key, data)
-            rediser.expire(key, option.expire)
+            redis.set(key, data)
+            redis.expire(key, option.expire)
         })
 
         next()

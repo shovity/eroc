@@ -1,23 +1,22 @@
 const CronJob = require('cron').CronJob
-
 const config = require('./config')
 
-const scheduler = {
+const schedule = {
     jobs: [],
 }
 
-scheduler.add = (expr, handle, option = {}) => {
+schedule.add = (expr, handle, option = {}) => {
     const wrap = () => {
         try {
             if (handle.constructor.name === 'AsyncFunction') {
                 handle().catch((error) => {
-                    console.error('scheduler: error', error)
+                    console.error('schedule: error', error)
                 })
             } else {
                 handle()
             }
         } catch (error) {
-            console.error('scheduler: error', error)
+            console.error('schedule: error', error)
         }
     }
 
@@ -27,7 +26,7 @@ scheduler.add = (expr, handle, option = {}) => {
         return
     }
 
-    scheduler.jobs.push({
+    schedule.jobs.push({
         expr,
         handle: wrap,
         cronjob,
@@ -36,4 +35,4 @@ scheduler.add = (expr, handle, option = {}) => {
     cronjob.start()
 }
 
-module.exports = scheduler
+module.exports = schedule

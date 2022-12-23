@@ -1,5 +1,5 @@
 const jwt = require('./jwt')
-const requester = require('./requester')
+const request = require('./request')
 const config = require('./config')
 
 const vanguard = {}
@@ -18,7 +18,7 @@ vanguard.detect = () => {
             // Detect CMS token
             if (!req.headers.token && req.headers['cms-token']) {
                 const data = await jwt.verify(req.headers['cms-token'], { secret: config.cms_jwt_secret })
-                const { data: user } = await requester.get(`user/in/users/${data.sub}`)
+                const { data: user } = await request.get(`user/in/users/${data.sub}`)
 
                 check(user, 'Missing cms user')
                 req.u.user = user
@@ -55,7 +55,7 @@ vanguard.detect = () => {
  * @returns {Function} Middleware
  */
 vanguard.gate = (option = {}) => {
-    const rediser = require('./rediser')
+    const redis = require('./redis')
 
     return (req, res, next) => {
         const handle = async () => {
@@ -74,7 +74,7 @@ vanguard.gate = (option = {}) => {
             }
 
             if (req.u.user) {
-                const tiat = await rediser.hget('user_tiat', req.u.user._id)
+                const tiat = await redis.hget('user_tiat', req.u.user._id)
 
                 if (tiat === null) {
                     res.u.cookie('token', '')
@@ -90,7 +90,7 @@ vanguard.gate = (option = {}) => {
                     // Ensure token refresh
 
                     const token = req.headers.token || req.cookies.token
-                    const { data } = await requester.post('user/v1/users/token', { token })
+                    const { data } = await request.post('user/v1/users/token', { token })
                     req.u.user = await jwt.verify(data.token)
 
                     if (req.headers.token) {

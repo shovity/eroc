@@ -1,6 +1,5 @@
 const epxress = require('express')
 const httpProxy = require('http-proxy')
-
 const config = require('./config')
 
 module.exports = () => {

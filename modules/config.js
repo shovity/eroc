@@ -43,10 +43,22 @@ const main = async () => {
 
     // Load centralized configuration
     if (config.redis_uri) {
-        const rediser = require('./rediser')
+        const redis = require('redis')
         check(config.service, 'Missing config.service')
 
-        Object.assign(config, await rediser.hget('eroc_config', '*'), await rediser.hget('eroc_config', config.service))
+        const client = redis.createClient({ url: config.redis_uri, })
+        client.connect()
+
+        const rcs = await client.multi()
+            .hGet('eroc_config', '*')
+            .hGet('eroc_config', config.service)
+            .exec()
+
+        for (const rc of rcs) {
+            Object.assign(config, JSON.parse(rc))
+        }
+
+        client.quit()
     }
 
     // Load project config.override.js
@@ -56,11 +68,11 @@ const main = async () => {
         if (typeof handle === 'function') {
             handle(config)
         } else {
-            console.error('cardinal: config.override.js must be a function')
+            console.error('config: config.override.js must be a function')
         }
     }
 
-    console.log(`eroc: 🍒 Load config done - service=${config.service}, env=${config.env}`)
+    console.info(`config: 🍒 Load config done - service=${config.service}, env=${config.env}`)
     config.deferred.config.resolve()
 }
 

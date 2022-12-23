@@ -21,7 +21,7 @@ cardinal.create = (middle) => {
     cardinal.server = server
 
     cardinal.setup(middle).catch((error) => {
-        console.log('eroc: ERROR - Setup application failed:', error)
+        console.log('cardinal: ERROR - Setup application failed:', error)
     })
 
     return { app, server }
@@ -107,7 +107,7 @@ cardinal.setup = async (middle) => {
     if (config.api_monitor) {
         const ele = require('express-list-endpoints')
 
-        console.log('eroc: 🧬 list apis')
+        console.log('cardinal: 🧬 list apis')
         ele(app).forEach((api) => {
             api.methods.forEach((m) => console.log(`    ${m.padEnd(6)}${api.path}`))
         })
@@ -115,7 +115,7 @@ cardinal.setup = async (middle) => {
 
     if (config.port) {
         cardinal.server.listen(config.port, () => {
-            console.log(`eroc: 🍔 HTTP server ready! - port=${config.port}`)
+            console.log(`cardinal: 🍔 HTTP server ready! - port=${config.port}`)
         })
     }
 
@@ -125,18 +125,13 @@ cardinal.setup = async (middle) => {
 cardinal.boot = async () => {
     await config.deferred.config
 
-    // Check required config
-    check(config.service, 'Missing config.service')
-
     if (config.mongo_uri) {
         const mongoose = require('mongoose')
 
         const connect = () => {
             mongoose
                 .connect(config.mongo_uri, {
-                    auth: {
-                        authSource: 'admin',
-                    },
+                    authSource: 'admin',
                 })
                 .then(() => {
                     console.log(`mongo: 🍱 Connected - ${config.mongo_uri}`)
@@ -148,6 +143,7 @@ cardinal.boot = async () => {
                 })
         }
 
+        mongoose.set('strictQuery', false)
         connect()
     }
 }
@@ -160,10 +156,13 @@ cardinal.shutdown = async () => {
 cardinal.seek = async () => {
     if (await util.readble(config.seek_routers)) {
         try {
-            const router = await scanner.router(config.seek_routers)
-            cardinal.app.use(path.join('/', config.router_prefix || config.service), router)
+            const { router, paths } = await scanner.router(config.seek_routers)
+            const prefix = config.router_prefix || config.service
+
+            cardinal.app.use(path.join('/', prefix), router)
+            console.info(`cardinal: Load ${paths.length} routers done - router_prefix=${prefix}`)
         } catch (error) {
-            console.log('eroc: ERROR - seek router false', error)
+            console.error('cardinal: ERROR - seek router false', error)
         }
     }
 
@@ -172,7 +171,8 @@ cardinal.seek = async () => {
     }
 
     if (await util.readble(config.seek_static)) {
-        const match = path.join('/', config.router_prefix || config.service, 'static')
+        const prefix = config.router_prefix || config.service
+        const match = path.join('/', prefix, 'static')
 
         cardinal.app.use(
             match,
@@ -212,11 +212,11 @@ cardinal.monitoring = async () => {
             if (message.action === 'reboot') {
                 await cardinal.shutdown()
                 await cardinal.boot(cardinal.app)
-                console.info('eroc: Reboot done!')
+                console.info('cardinal: Reboot done!')
             }
 
             if (message.action === 'restart') {
-                console.info('Force restart from cardinal')
+                console.info('cardinal: Force restart from cardinal')
                 process.exit(1)
             }
         })

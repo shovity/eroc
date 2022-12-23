@@ -1,5 +1,5 @@
 const config = require('./config')
-const requester = require('./requester')
+const request = require('./request')
 
 check(config.websocket_client, 'Missing config.websocket_client')
 check(config.websocket_emitter, 'Missing config.websocket_emitter')
@@ -28,7 +28,7 @@ socket.emit = async (event, data, option = {}) => {
         body.room = option.room
     }
 
-    return await requester.post(config.websocket_emitter, body)
+    return await request.post(config.websocket_emitter, body)
 }
 
 module.exports = socket
