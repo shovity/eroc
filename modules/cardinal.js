@@ -30,6 +30,7 @@ cardinal.create = (middle) => {
 cardinal.setup = async (middle) => {
     const vanguard = require('./vanguard')
     const rio = require('./rio')
+    const tx = require('./tx')
     const app = cardinal.app
     const hbs = exphbs.create({ extname: 'html' })
 
@@ -41,6 +42,8 @@ cardinal.setup = async (middle) => {
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
     app.use(cors())
+
+    app.use(tx.init())
 
     // gp success error
     app.use(rio.base())
@@ -74,7 +77,7 @@ cardinal.setup = async (middle) => {
         )
     })
 
-    // Top level handle exception
+    // Top-level and centrally exceptions
     app.use((error, req, res, next) => {
         // Handle express error
         // error throw from sync handle and next(err)
@@ -86,6 +89,7 @@ cardinal.setup = async (middle) => {
             method: req.method,
             env: config.env,
             level: 'fatal',
+            txid: util.txid(),
         }
 
         if (typeof error === 'object') {

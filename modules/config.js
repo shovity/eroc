@@ -46,13 +46,10 @@ const main = async () => {
         const redis = require('redis')
         check(config.service, 'Missing config.service')
 
-        const client = redis.createClient({ url: config.redis_uri, })
+        const client = redis.createClient({ url: config.redis_uri })
         client.connect()
 
-        const rcs = await client.multi()
-            .hGet('eroc_config', '*')
-            .hGet('eroc_config', config.service)
-            .exec()
+        const rcs = await client.multi().hGet('eroc_config', '*').hGet('eroc_config', config.service).exec()
 
         for (const rc of rcs) {
             Object.assign(config, JSON.parse(rc))

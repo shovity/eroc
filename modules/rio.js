@@ -70,22 +70,8 @@ rio.base = () => {
             res.u.emit('success', response)
         }
 
-        res.error = (error, option = {}) => {
-            res.status(option.code || 400)
-
-            if (typeof error === 'string') {
-                error = {
-                    message: error,
-                }
-            }
-
-            res.json({
-                error: {
-                    url: req.originalUrl,
-                    method: req.method,
-                    ...error,
-                },
-            })
+        res.error = (error) => {
+            check(false, error)
         }
 
         next()
