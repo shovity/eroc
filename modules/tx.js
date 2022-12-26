@@ -8,7 +8,7 @@ const { AsyncLocalStorage } = require('node:async_hooks')
 const uuid = require('uuid')
 
 const tx = {
-    asyncLocalStorage: new AsyncLocalStorage()
+    asyncLocalStorage: new AsyncLocalStorage(),
 }
 
 tx.init = () => {
@@ -17,7 +17,7 @@ tx.init = () => {
             tx.set('txid', uuid.v4())
             tx.set('url', req.originalUrl)
             tx.set('method', req.method)
-            
+
             next()
         })
     }

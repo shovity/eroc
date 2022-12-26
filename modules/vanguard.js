@@ -41,8 +41,7 @@ vanguard.detect = () => {
 
         handle().catch((error) => {
             req.cookies.token && res.u.cookie('token', '')
-            console.error(error)
-            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
+            return next(error)
         })
     }
 }
@@ -69,7 +68,7 @@ vanguard.gate = (option = {}) => {
                 if (option.page) {
                     return res.redirect(`/login?next=${req.originalUrl}`)
                 } else {
-                    return res.error({ message: '401 Unauthorized' }, { code: 401 })
+                    return res.status(401).error('401 Unauthorized')
                 }
             }
 
@@ -82,7 +81,7 @@ vanguard.gate = (option = {}) => {
                     if (option.page) {
                         return res.redirect(`/login?next=${req.originalUrl}`)
                     } else {
-                        return res.error({ message: 'User tiat not found' }, { code: 401 })
+                        return res.status(401).error('User tiat not found')
                     }
                 }
 
@@ -94,10 +93,7 @@ vanguard.gate = (option = {}) => {
                     req.u.user = await jwt.verify(data.token)
 
                     if (req.headers.token) {
-                        return res.error({
-                            message: 'token_expired',
-                            token: data.token,
-                        })
+                        return res.error({ message: 'token_expired', token: data.token })
                     } else {
                         res.u.cookie('token', data.token)
                         req.cookies.token = data.token
@@ -111,8 +107,7 @@ vanguard.gate = (option = {}) => {
 
         handle().catch((error) => {
             res.u.cookie('token', '')
-            console.error(error)
-            return next('Có lỗi trong quá trình đăng nhập, vui lòng thử lại')
+            return next(error)
         })
     }
 }

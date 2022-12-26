@@ -63,18 +63,7 @@ cardinal.setup = async (middle) => {
 
     // Catch 404 route
     app.use((req, res, next) => {
-        return res.error(
-            {
-                message: '404 Not found',
-                service: config.service,
-                url: req.originalUrl,
-                method: req.method,
-                env: config.env,
-            },
-            {
-                code: 404,
-            },
-        )
+        return res.status(404).error('404 Not found')
     })
 
     // Top-level and centrally exceptions
@@ -88,8 +77,7 @@ cardinal.setup = async (middle) => {
             url: req.originalUrl,
             method: req.method,
             env: config.env,
-            level: 'fatal',
-            txid: util.txid(),
+            txid: tx.get('txid'),
         }
 
         if (typeof error === 'object') {
@@ -105,7 +93,7 @@ cardinal.setup = async (middle) => {
             response.code = `${config.service}.${code}`.trim()
         }
 
-        return res.status(400).json({ error: response })
+        return res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
     })
 
     if (config.api_monitor) {
