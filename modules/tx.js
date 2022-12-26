@@ -14,9 +14,13 @@ const tx = {
 tx.init = () => {
     return (req, res, next) => {
         tx.asyncLocalStorage.run(new Map(), () => {
-            tx.set('txid', uuid.v4())
+            const txid = req.headers['x-txid'] || uuid.v4()
+
+            tx.set('txid', txid)
             tx.set('url', req.originalUrl)
             tx.set('method', req.method)
+
+            res.append('x-txid', txid)
 
             next()
         })

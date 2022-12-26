@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 const AbortController = require('abort-controller')
-
 const config = require('./config')
+const tx = require('./tx')
 
 const request = {
     setting: {
@@ -31,6 +31,7 @@ request.fetch = ({ url, method, body, param, option }) => {
         headers: {
             ...setting.header,
             ...option.header,
+            'x-txid': tx.get('txid') || '',
         },
         ...option,
     }
