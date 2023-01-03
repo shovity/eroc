@@ -93,6 +93,7 @@ cardinal.setup = async (middle) => {
             response.code = `${config.service}.${code}`.trim()
         }
 
+        console.error(error)
         return res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
     })
 
