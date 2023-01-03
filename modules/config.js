@@ -35,12 +35,23 @@ if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
     }
 }
 
-const main = async () => {
-    // Override reids_uri from environment
-    if (process.env.REDIS_URI) {
-        config.redis_uri = process.env.REDIS_URI
-    }
+// Load config.override.js
+if (fs.existsSync(path.join(config.app_dir, 'config.override.js'))) {
+    const handle = require(path.join(config.app_dir, 'config.override.js'))
 
+    if (typeof handle === 'function') {
+        handle(config)
+    } else {
+        console.error('config: config.override.js must be a function')
+    }
+}
+
+// Override reids_uri from environment
+if (process.env.REDIS_URI) {
+    config.redis_uri = process.env.REDIS_URI
+}
+
+const main = async () => {
     // Load centralized configuration
     if (config.redis_uri) {
         const redis = require('redis')
@@ -56,17 +67,6 @@ const main = async () => {
         }
 
         client.quit()
-    }
-
-    // Load project config.override.js
-    if (fs.existsSync(path.join(config.app_dir, 'config.override.js'))) {
-        const handle = require(path.join(config.app_dir, 'config.override.js'))
-
-        if (typeof handle === 'function') {
-            handle(config)
-        } else {
-            console.error('config: config.override.js must be a function')
-        }
     }
 
     console.info(`config: 🍒 Load config done - service=${config.service}, env=${config.env}`)
