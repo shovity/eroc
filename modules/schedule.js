@@ -23,7 +23,7 @@ schedule.add = (expr, handle, option = {}) => {
     const cronjob = new CronJob(expr, wrap)
 
     if (option.env && option.env.split(' ').indexOf(config.env) === -1) {
-        return
+        return cronjob
     }
 
     schedule.jobs.push({
@@ -33,6 +33,8 @@ schedule.add = (expr, handle, option = {}) => {
     })
 
     cronjob.start()
+
+    return cronjob
 }
 
 module.exports = schedule
