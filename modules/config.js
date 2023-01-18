@@ -9,12 +9,16 @@ Object.assign(config, {
     port: 3000,
     env: 'local',
     secret: 'terces',
+
     seek_static: 'static',
     seek_public: 'public',
     seek_views: 'views',
     seek_tasks: 'tasks',
     seek_routers: 'routers',
     seek_events: 'events',
+
+    logger_preset: 'console',
+
     deferred: {},
 })
 
@@ -69,8 +73,11 @@ const main = async () => {
         client.quit()
     }
 
-    console.info(`config: 🍒 Load config done - service=${config.service}, env=${config.env}`)
     config.deferred.config.resolve()
+    
+    process.nextTick(() => {
+        console.info(`config: 🍒 Load config done - service=${config.service}, env=${config.env}`)
+    })
 }
 
 main().catch((error) => {
