@@ -38,9 +38,19 @@ const prepare = (data) => {
         method: tx.get('method'),
         txid: tx.get('txid'),
         time: new Date().toISOString(),
-        path: new Error().stack.split('at ')[3].split(` (${config.app_dir}/`)[1].split('.js:')[0],
-        stack: data.message?.stack || undefined,
     })
+
+    if (!data.path) {
+        try {
+            data.path = Error().stack.split('at ')[3].split(` (${config.app_dir}/`)[1].split('.js:')[0]
+        } catch (error) {
+            console.error('logger: extract path failed:', Error())
+        }
+    }
+
+    if (!data.stack) {
+        data.stack = data.message?.stack
+    }
 
     return data
 }
@@ -61,16 +71,21 @@ const transporter = (data) => {
 
 const boot = async () => {
     for (const level of Object.keys(logger.level)) {
-        logger[level] = (message, payload, option) => {
-            const data = prepare({ message, payload, level })
-            transporter(data, option)
+        logger[level] = (message, payload, extra) => {
+            const data = prepare({ message, payload, level, ...extra })
+            transporter(data)
         }
     }
 
     for (const preset of setting.preset.split(',')) {
         if (preset === 'console') {
             logger.transports.push({
-                handle: console.log,
+                handle: (data) => {
+                    const stack = data.stack
+                    delete data.stack
+                    console.info(data)
+                    stack && console.info(stack)
+                },
             })
 
             continue
@@ -96,7 +111,7 @@ const boot = async () => {
 
                 handle: (data) => {
                     slack.send(
-                        `*Critical error: ${data.message}*\n` +
+                        `*System error - ${data.message}*\n` +
                         `- *URL:* ${data.url}\n` +
                         `- *SERVICE:* ${data.service}\n` +
                         `- *PATH:* ${data.path}\n` +

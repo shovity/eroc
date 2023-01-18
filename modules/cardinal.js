@@ -7,6 +7,7 @@ const exphbs = require('express-handlebars')
 const config = require('./config')
 const scanner = require('./scanner')
 const util = require('./util')
+const logger = require('./logger')
 
 const cardinal = {
     app: null,
@@ -93,7 +94,11 @@ cardinal.setup = async (middle) => {
             response.code = `${config.service}.${code}`.trim()
         }
 
-        console.error(error)
+        logger.debug(response.message, Object.assign({}, error), {
+            path: 'eroc/cardinal',
+            stack: error.stack,
+        })
+
         return res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
     })
 
