@@ -80,10 +80,11 @@ const boot = async () => {
         if (preset === 'console') {
             logger.transports.push({
                 handle: (data) => {
-                    const stack = data.stack
-                    delete data.stack
-                    console.info(data)
-                    stack && console.info(stack)
+                    const clone = Object.assign({}, data)
+                    delete clone.stack
+                    console.info(clone)
+
+                    data.stack && console.info(data.stack)
                 },
             })
 
