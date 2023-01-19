@@ -23,7 +23,7 @@ const boot = async () => {
     kafka.client = new Kafka({
         clientId: config.service,
         brokers: config.kafka_broker_uri.split(','),
-        logLevel: logLevel.WARN,
+        logLevel: logLevel.ERROR,
         logCreator: logger,
 
         retry: {

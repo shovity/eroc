@@ -1,12 +1,11 @@
 const config = require('./config')
 const tx = require('./tx')
 
+// Configs
+// config.logger_preset
+
 const logger = {
     transports: [],
-
-    setting: {
-        preset: config.logger_preset,
-    },
 
     // Ordering specified by RFC5424
     level: {
@@ -20,8 +19,6 @@ const logger = {
         debug: 7,
     },    
 }
-
-const setting = logger.setting
 
 const prepare = (data) => {
     if (data.message instanceof Error) {
@@ -70,6 +67,8 @@ const transporter = (data) => {
 }
 
 const boot = async () => {
+    await config.deferred.config
+
     for (const level of Object.keys(logger.level)) {
         logger[level] = (message, payload, extra) => {
             const data = prepare({ message, payload, level, ...extra })
@@ -77,7 +76,7 @@ const boot = async () => {
         }
     }
 
-    for (const preset of setting.preset.split(',')) {
+    for (const preset of config.logger_preset.split(',')) {
         if (preset === 'console') {
             logger.transports.push({
                 handle: (data) => {
