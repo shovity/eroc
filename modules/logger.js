@@ -34,6 +34,7 @@ const prepare = (data) => {
         url: tx.get('url'),
         method: tx.get('method'),
         txid: tx.get('txid'),
+        uid: tx.get('uid'),
         time: new Date().toISOString(),
     })
 

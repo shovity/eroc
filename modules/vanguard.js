@@ -1,6 +1,7 @@
 const jwt = require('./jwt')
 const request = require('./request')
 const config = require('./config')
+const tx = require('./tx')
 
 const vanguard = {}
 
@@ -34,6 +35,10 @@ vanguard.detect = () => {
             // Detect client
             if (req.headers.client && config.clients?.length) {
                 req.u.client = config.clients.find((c) => c.key === req.headers.client)
+            }
+
+            if (res.u.user) {
+                tx.set('uid', req.u.user._id)
             }
 
             next()
