@@ -11,13 +11,6 @@ scanner.router = async (dir) => {
         .filter((path) => {
             return /^[a-z][a-z0-9-]+\.js$/.test(path.split('/').pop())
         })
-        .map((path) => {
-            if (path.endsWith('/index.js')) {
-                path = path.slice(0, -9)
-            }
-
-            return path
-        })
         .sort()
 
     for (const path of paths) {
@@ -27,6 +20,10 @@ scanner.router = async (dir) => {
         if (typeof module !== 'function') {
             console.warn(`eroc - warn: router not a function - ${path}`)
             continue
+        }
+
+        if (matchs[matchs.length - 1] === 'index') {
+            matchs.pop()
         }
 
         router.use(matchs.join('/'), module)
