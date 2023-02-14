@@ -40,7 +40,14 @@ const prepare = (data) => {
 
     if (!data.path) {
         try {
-            data.path = Error().stack.split('at ')[3].split(` (${config.app_dir}/`)[1].split('.js:')[0]
+            const paths = (data.stack || Error().stack).split('at ')
+            let pick = 3
+
+            if (paths[1].startsWith('global.check')) {
+                pick = 2
+            }
+
+            data.path = paths[pick].split(`${config.app_dir}/`).slice(1).join('').split('.js:')[0]
         } catch (error) {
             console.error('logger: extract path failed:', Error())
         }
@@ -97,7 +104,7 @@ const boot = async () => {
 
             logger.transports.push({
                 handle: (data) => {
-                    task.emit('logger.create', data)
+                    process.nextTick(task.emit, 'logger.create', data)
                 },
             })
             

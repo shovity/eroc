@@ -32,17 +32,16 @@ const boot = async () => {
         },
     })
 
+    kafka.producer = kafka.client.producer()
+
+    await kafka.producer.connect()
+
     kafka.ready.resolve()
     console.log(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
 }
 
 kafka.pub = async (topic, message = null) => {
     await kafka.ready
-
-    if (!kafka.producer) {
-        kafka.producer = kafka.client.producer()
-        await kafka.producer.connect()
-    }
 
     await kafka.producer.send({
         topic,

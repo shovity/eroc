@@ -95,7 +95,6 @@ cardinal.setup = async (middle) => {
         }
 
         logger.debug(response.message, Object.assign({}, error), {
-            path: 'eroc/cardinal',
             stack: error.stack,
         })
 
