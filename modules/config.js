@@ -62,7 +62,7 @@ const main = async () => {
         check(config.service, 'Missing config.service')
 
         const client = redis.createClient({ url: config.redis_uri })
-        client.connect()
+        await client.connect()
 
         const rcs = await client.multi().hGet('eroc_config', '*').hGet('eroc_config', config.service).exec()
 
@@ -82,6 +82,7 @@ const main = async () => {
 
 main().catch((error) => {
     console.error('config: Load config error', error)
+    process.exit(1)
 })
 
 module.exports = config
