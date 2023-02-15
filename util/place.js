@@ -28,8 +28,6 @@ util.refine = (place) => {
             .reverse()
     }
 
-    place.formatted = place.formatted_address
-
     return place
 }
 
