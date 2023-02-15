@@ -94,7 +94,9 @@ cardinal.setup = async (middle) => {
             response.code = `${config.service}.${code}`.trim()
         }
 
-        logger.debug(response.message, Object.assign({}, error), {
+        const payload = typeof error === 'object' ? Object.assign({}, error) : {}
+
+        logger.debug(response.message, payload, {
             stack: error.stack,
         })
 
