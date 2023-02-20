@@ -2,6 +2,7 @@ const jwt = require('./jwt')
 const request = require('./request')
 const config = require('./config')
 const tx = require('./tx')
+const redis = require('./redis')
 
 const vanguard = {}
 
@@ -33,8 +34,12 @@ vanguard.detect = () => {
             }
 
             // Detect client
-            if (req.headers.client && config.clients?.length) {
-                req.u.client = config.clients.find((c) => c.key === req.headers.client)
+            if (req.headers.client) {
+                req.u.client = config.clients?.find((c) => c.key === req.headers.client)
+
+                if (!req.u.client) {
+                    req.u.client = await redis.hget('user:client', req.headers.client)
+                }
             }
 
             if (res.u.user) {
@@ -59,8 +64,6 @@ vanguard.detect = () => {
  * @returns {Function} Middleware
  */
 vanguard.gate = (option = {}) => {
-    const redis = require('./redis')
-
     return (req, res, next) => {
         const handle = async () => {
             if (!req.u.user && !req.u.client) {
