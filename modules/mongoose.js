@@ -15,7 +15,7 @@ mongoose.model = (name, schema, collection) => {
                 method: 'save',
             }
 
-            task.emit('logger.event.create', event)
+            task.emit('mongoose.event', event)
         })
 
         schema.pre('updateOne', async function () {
@@ -27,7 +27,7 @@ mongoose.model = (name, schema, collection) => {
                 method: 'updateOne',
             }
 
-            task.emit('logger.event.create', event)
+            task.emit('mongoose.event', event)
         })
     }
 
