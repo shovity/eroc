@@ -17,7 +17,7 @@ const logger = {
         notice: 5,
         info: 6,
         debug: 7,
-    },    
+    },
 }
 
 const prepare = (data) => {
@@ -107,7 +107,7 @@ const boot = async () => {
                     process.nextTick(task.emit, 'logger.create', data)
                 },
             })
-            
+
             continue
         }
 
@@ -120,15 +120,15 @@ const boot = async () => {
                 handle: (data) => {
                     slack.send(
                         `*System error - ${data.message}*\n` +
-                        `- *URL:* ${data.url}\n` +
-                        `- *SERVICE:* ${data.service}\n` +
-                        `- *PATH:* ${data.path}\n` +
-                        `- *ENV:* ${data.env}\n`,
+                            `- *URL:* ${data.url}\n` +
+                            `- *SERVICE:* ${data.service}\n` +
+                            `- *PATH:* ${data.path}\n` +
+                            `- *ENV:* ${data.env}\n`,
                         {
-                            color: '#dc3545'
-                        }
+                            color: '#dc3545',
+                        },
                     )
-                }
+                },
             })
 
             continue

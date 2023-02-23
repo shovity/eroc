@@ -74,7 +74,7 @@ const main = async () => {
     }
 
     config.deferred.config.resolve()
-    
+
     process.nextTick(() => {
         console.info(`config: 🍒 Load config done - service=${config.service}, env=${config.env}`)
     })
