@@ -157,4 +157,50 @@ rio.auth = () => {
     }
 }
 
+rio.monitor = () => {
+    const socket = require('./socket')
+    
+    return (req, res, next) => {
+        res.u.on('success', (response) => {
+            socket.emit(
+                'common:core:rio:monitor',
+                {
+                    path: req.originalUrl.split('?')[0],
+                    method: req.method,
+                    query: req.query,
+                    body: req.body,
+                    header: req.headers,
+                    response,
+                },
+                {
+                    room: 'common:core:rio',
+                },
+            ).catch((error) => {
+                console.error('rio: socket emit error', error)
+            })
+        })
+
+        res.u.on('error', (response) => {
+            socket.emit(
+                'common:core:rio:monitor',
+                {
+                    path: req.originalUrl.split('?')[0],
+                    method: req.method,
+                    query: req.query,
+                    body: req.body,
+                    header: req.headers,
+                    response,
+                },
+                {
+                    room: 'common:core:rio',
+                },
+            ).catch((error) => {
+                console.error('rio: socket emit error', error)
+            })
+        })
+
+        next()
+    }
+}
+
 module.exports = rio

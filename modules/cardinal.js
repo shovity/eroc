@@ -55,6 +55,9 @@ cardinal.setup = async (middle) => {
 
     await cardinal.boot()
 
+    // monitor
+    config.rio_monitor && app.use(rio.monitor())
+
     app.use(vanguard.detect())
 
     middle && middle(app)?.catch(console.error)
@@ -100,7 +103,8 @@ cardinal.setup = async (middle) => {
             stack: error.stack,
         })
 
-        return res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
+        res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
+        res.u.emit('error', { error: response })
     })
 
     if (config.api_monitor) {
