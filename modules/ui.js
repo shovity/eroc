@@ -3,29 +3,18 @@ const Router = require('./Router')
 module.exports = (template, command = {}) => {
     const router = Router()
 
+    if (command.middle) {
+        router.use(command.middle)
+    }
+
     router.get('/', async (req, res, next) => {
-        const handle = command.context
+        const context = { layout: false }
 
-        let context = null
-
-        if (!handle) {
-            return res.render(template, { layout: false })
+        if (command.context) {
+            Object.assign(context, await command.context(req, res, next))
         }
 
-        if (handle.constructor.name === 'AsyncFunction') {
-            context = await handle(req, res, next)
-        } else {
-            context = handle(req, res, next)
-        }
-
-        if (!context) {
-            return
-        }
-
-        return res.render(template, {
-            layout: false,
-            ...context,
-        })
+        return res.render(template, context)
     })
 
     router.post('/', (req, res, next) => {
