@@ -58,6 +58,7 @@ cardinal.setup = async (middle) => {
     // monitor
     config.rio_monitor && app.use(rio.monitor())
 
+    app.use(path.join('/', config.router_prefix || config.service), rio.default())
     app.use(vanguard.detect())
 
     middle && middle(app)?.catch(console.error)

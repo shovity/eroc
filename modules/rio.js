@@ -1,5 +1,7 @@
 const Event = require('events')
 const util = require('./util')
+const Router = require('./Router')
+const config = require('./config')
 
 const rio = {}
 
@@ -201,6 +203,25 @@ rio.monitor = () => {
 
         next()
     }
+}
+
+rio.default = () => {
+    const router = Router()
+
+    router.get('/_status', async (req, res, next) => {
+        const data = {
+            service: config.service,
+            env: config.env,
+        }
+
+        if (await req.auth.or('ruler monitoring', false)) {
+            data.config = config
+        }
+
+        return res.success(data)
+    })
+
+    return router
 }
 
 module.exports = rio
