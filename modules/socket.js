@@ -1,12 +1,14 @@
 const config = require('./config')
 const request = require('./request')
 
-check(config.websocket_client, 'Missing config.websocket_client')
-check(config.websocket_emitter, 'Missing config.websocket_emitter')
+
 
 const socket = {}
 
 socket.emit = async (event, data, option = {}) => {
+    check(config.websocket_client, 'Missing config.websocket_client')
+    check(config.websocket_emitter, 'Missing config.websocket_emitter')
+
     const body = {
         event: event,
         client: config.websocket_client,

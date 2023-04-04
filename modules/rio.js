@@ -163,6 +163,8 @@ rio.monitor = () => {
     const socket = require('./socket')
     
     return (req, res, next) => {
+        req.u.receive = Date.now()
+
         res.u.on('success', (response) => {
             socket.emit(
                 'common:core:rio:monitor',
@@ -172,6 +174,7 @@ rio.monitor = () => {
                     query: req.query,
                     body: req.body,
                     header: req.headers,
+                    duration: Date.now() - req.u.receive,
                     response,
                 },
                 {
@@ -191,6 +194,7 @@ rio.monitor = () => {
                     query: req.query,
                     body: req.body,
                     header: req.headers,
+                    duration: Date.now() - req.u.receive,
                     response,
                 },
                 {
