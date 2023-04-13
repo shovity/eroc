@@ -164,44 +164,50 @@ rio.monitor = () => {
     
     return (req, res, next) => {
         req.u.receive = Date.now()
+        
+        const caller = util.throttle(500)
 
         res.u.on('success', (response) => {
-            socket.emit(
-                'common:core:rio:monitor',
-                {
-                    path: req.originalUrl.split('?')[0],
-                    method: req.method,
-                    query: req.query,
-                    body: req.body,
-                    header: req.headers,
-                    duration: Date.now() - req.u.receive,
-                    response,
-                },
-                {
-                    room: 'common:core:rio',
-                },
-            ).catch((error) => {
-                console.error('rio: socket emit error', error)
+            caller.execute(() => {
+                socket.emit(
+                    'common:core:rio:monitor',
+                    {
+                        path: req.originalUrl.split('?')[0],
+                        method: req.method,
+                        query: req.query,
+                        body: req.body,
+                        header: req.headers,
+                        duration: Date.now() - req.u.receive,
+                        response,
+                    },
+                    {
+                        room: 'common:core:rio',
+                    },
+                ).catch((error) => {
+                    console.error('rio: socket emit error', error)
+                })
             })
         })
 
         res.u.on('error', (response) => {
-            socket.emit(
-                'common:core:rio:monitor',
-                {
-                    path: req.originalUrl.split('?')[0],
-                    method: req.method,
-                    query: req.query,
-                    body: req.body,
-                    header: req.headers,
-                    duration: Date.now() - req.u.receive,
-                    response,
-                },
-                {
-                    room: 'common:core:rio',
-                },
-            ).catch((error) => {
-                console.error('rio: socket emit error', error)
+            caller.execute(() => {
+                socket.emit(
+                    'common:core:rio:monitor',
+                    {
+                        path: req.originalUrl.split('?')[0],
+                        method: req.method,
+                        query: req.query,
+                        body: req.body,
+                        header: req.headers,
+                        duration: Date.now() - req.u.receive,
+                        response,
+                    },
+                    {
+                        room: 'common:core:rio',
+                    },
+                ).catch((error) => {
+                    console.error('rio: socket emit error', error)
+                })
             })
         })
 
