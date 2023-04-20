@@ -183,9 +183,7 @@ rio.monitor = () => {
                     {
                         room: 'common:core:rio',
                     },
-                ).catch((error) => {
-                    console.error('rio: socket emit error', error)
-                })
+                )
             })
         })
 
@@ -205,9 +203,7 @@ rio.monitor = () => {
                     {
                         room: 'common:core:rio',
                     },
-                ).catch((error) => {
-                    console.error('rio: socket emit error', error)
-                })
+                )
             })
         })
 

@@ -1,8 +1,6 @@
 const config = require('./config')
 const request = require('./request')
 
-
-
 const socket = {}
 
 socket.emit = async (event, data, option = {}) => {
@@ -30,7 +28,9 @@ socket.emit = async (event, data, option = {}) => {
         body.room = option.room
     }
 
-    return await request.post(config.websocket_emitter, body)
+    return await request.post(config.websocket_emitter, body).catch((error) => {
+        console.error('socket: emit error', error)
+    })
 }
 
 module.exports = socket
