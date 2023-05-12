@@ -2,9 +2,51 @@ const jwt = require('./jwt')
 const request = require('./request')
 const config = require('./config')
 const tx = require('./tx')
-const redis = require('./redis')
 
-const vanguard = {}
+const vanguard = {
+    preset: config.vanguard_preset || 'token',
+
+    detector: {
+        token: () => {
+            return async (req) => {
+                // Detect main token
+                if (!req.u.user && (req.headers.token || req.cookies.token)) {
+                    req.u.user = await jwt.verify(req.headers.token || req.cookies.token)
+                }
+            }
+        },
+
+        cms: () => {
+            return async (req) => {
+                // Detect CMS token
+                if (!req.headers.token && req.headers['cms-token']) {
+                    const data = await jwt.verify(req.headers['cms-token'], { secret: config.cms_jwt_secret })
+                    const { data: user } = await request.get(`user/in/users/${data.sub}`)
+
+                    check(user, 'Missing cms user')
+                    req.u.user = user
+                    req.u.user.tiat = Infinity
+                    req.headers.token = jwt.sign(req.u.user)
+                }
+            }
+        },
+
+        client: () => {
+            const { redis } = require('eroc')
+
+            return async (req) => {
+                // Detect client
+                if (req.headers.client) {
+                    req.u.client = config.clients?.find((c) => c.key === req.headers.client)
+
+                    if (!req.u.client) {
+                        req.u.client = await redis.hget('user:client', req.headers.client)
+                    }
+                }
+            }
+        },
+    },
+}
 
 /**
  * Just detect 🔍 if request is authenticated
@@ -13,36 +55,22 @@ const vanguard = {}
  * @returns {Function} Middleware
  */
 vanguard.detect = () => {
+    const detectors = []
+
+    for (const preset of vanguard.preset.split(',')) {
+        const detector = vanguard.detector[preset] ? vanguard.detector[preset]() : undefined
+        check(detector, `vanguard: detector preset not found: "${preset}"`)
+
+        detectors.push(detector)
+    }
+
     return async (req, res, next) => {
         const handle = async () => {
-            //* Main header > CMS header > Main cookie
-
-            // Detect CMS token
-            if (!req.headers.token && req.headers['cms-token']) {
-                const data = await jwt.verify(req.headers['cms-token'], { secret: config.cms_jwt_secret })
-                const { data: user } = await request.get(`user/in/users/${data.sub}`)
-
-                check(user, 'Missing cms user')
-                req.u.user = user
-                req.u.user.tiat = Infinity
-                req.headers.token = jwt.sign(req.u.user)
+            for (const detector of detectors) {
+                await detector(req)
             }
 
-            // Detect main token
-            if (!req.u.user && (req.headers.token || req.cookies.token)) {
-                req.u.user = await jwt.verify(req.headers.token || req.cookies.token)
-            }
-
-            // Detect client
-            if (req.headers.client) {
-                req.u.client = config.clients?.find((c) => c.key === req.headers.client)
-
-                if (!req.u.client) {
-                    req.u.client = await redis.hget('user:client', req.headers.client)
-                }
-            }
-
-            if (res.u.user) {
+            if (req.u.user) {
                 tx.set('uid', req.u.user._id)
             }
 

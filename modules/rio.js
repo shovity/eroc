@@ -161,10 +161,10 @@ rio.auth = () => {
 
 rio.monitor = () => {
     const socket = require('./socket')
-    
+
     return (req, res, next) => {
         req.u.receive = Date.now()
-        
+
         const caller = util.throttle(500)
 
         res.u.on('success', (response) => {
