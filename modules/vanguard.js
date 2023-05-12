@@ -32,7 +32,7 @@ const vanguard = {
         },
 
         client: () => {
-            const { redis } = require('eroc')
+            const redis = require('./redis')
 
             return async (req) => {
                 // Detect client
@@ -92,6 +92,8 @@ vanguard.detect = () => {
  * @returns {Function} Middleware
  */
 vanguard.gate = (option = {}) => {
+    const redis = require('./redis')
+
     return (req, res, next) => {
         const handle = async () => {
             if (!req.u.user && !req.u.client) {
