@@ -4,8 +4,6 @@ const config = require('./config')
 const tx = require('./tx')
 
 const vanguard = {
-    preset: config.vanguard_preset || 'token',
-
     detector: {
         token: () => {
             return async (req) => {
@@ -57,7 +55,7 @@ const vanguard = {
 vanguard.detect = () => {
     const detectors = []
 
-    for (const preset of vanguard.preset.split(',')) {
+    for (const preset of config.vanguard_preset.split(',')) {
         const detector = vanguard.detector[preset] ? vanguard.detector[preset]() : undefined
         check(detector, `vanguard: detector preset not found: "${preset}"`)
 

@@ -18,6 +18,7 @@ Object.assign(config, {
     seek_events: 'events',
 
     logger_preset: 'console',
+    vanguard_preset: 'token',
 
     deferred: {},
 })
