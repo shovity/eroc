@@ -1,10 +1,15 @@
-const jwt = require('./jwt')
-const request = require('./request')
 const config = require('./config')
+const request = require('./request')
+const jwt = require('./jwt')
 const tx = require('./tx')
 
 const vanguard = {
     detector: {
+
+        /**
+         * Detect user form headers.token or cookies.token
+         * Success: Mount req.u.user
+         */
         token: () => {
             return async (req) => {
                 // Detect main token
@@ -14,32 +19,42 @@ const vanguard = {
             }
         },
 
+        /**
+         * Detect client from header.clientd or headers.client
+         * Redis required - 'user:client'
+         * Success: Mount req.u.client, add headers.clientd
+         */
+        client: () => {
+            const redis = require('./redis')
+
+            return async (req) => {
+                if (req.headers['clientd']) {
+                    req.u.client = await jwt.verify(req.headers['clientd'])
+                } else if (req.headers.client) {
+                    req.u.client = await redis.hget('user:client', req.headers.client)
+
+                    if (req.u.client) {
+                        req.headers['clientd'] = jwt.sign(req.u.client)
+                    }
+                }
+            }
+        },
+
+        /**
+         * Detect user from headers.cms-token
+         * Success: Mount req.u.user, add headers.token
+         */
         cms: () => {
             return async (req) => {
                 // Detect CMS token
                 if (!req.headers.token && req.headers['cms-token']) {
                     const data = await jwt.verify(req.headers['cms-token'], { secret: config.cms_jwt_secret })
                     const { data: user } = await request.get(`user/in/users/${data.sub}`)
-
                     check(user, 'Missing cms user')
+
                     req.u.user = user
                     req.u.user.tiat = Infinity
                     req.headers.token = jwt.sign(req.u.user)
-                }
-            }
-        },
-
-        client: () => {
-            const redis = require('./redis')
-
-            return async (req) => {
-                // Detect client
-                if (req.headers.client) {
-                    req.u.client = config.clients?.find((c) => c.key === req.headers.client)
-
-                    if (!req.u.client) {
-                        req.u.client = await redis.hget('user:client', req.headers.client)
-                    }
                 }
             }
         },
@@ -50,6 +65,7 @@ const vanguard = {
  * Just detect 🔍 if request is authenticated
  * and build req.u.user
  * and build req.u.client
+ * and pass/cache/verify authentication as header
  * @returns {Function} Middleware
  */
 vanguard.detect = () => {
@@ -112,6 +128,8 @@ vanguard.gate = (option = {}) => {
                 const tiat = await redis.hget('user_tiat', req.u.user._id)
 
                 if (tiat === null) {
+                    // Ensure token valid in system
+
                     res.u.cookie('token', '')
 
                     if (option.page) {
@@ -129,7 +147,7 @@ vanguard.gate = (option = {}) => {
                     req.u.user = await jwt.verify(data.token)
 
                     if (req.headers.token) {
-                        return res.error({ message: 'token_expired', token: data.token })
+                        return res.error({ message: 'Token expired code:token_expired', token: data.token })
                     } else {
                         res.u.cookie('token', data.token)
                         req.cookies.token = data.token
