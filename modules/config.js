@@ -20,6 +20,9 @@ Object.assign(config, {
     logger_preset: 'console',
     vanguard_preset: 'token',
 
+    websocket_client: '_',
+    websocket_emitter: 'socket/in/emitter',
+
     deferred: {},
 })
 
