@@ -172,9 +172,10 @@ rio.monitor = () => {
             path: req.originalUrl.split('?')[0],
             method: req.method,
             query: req.query,
-            body: req.body,
             header: req.headers,
+            body: req.body,
             duration: Date.now() - req.u.receive,
+            created: Date.now(),
             response,
         })
 
