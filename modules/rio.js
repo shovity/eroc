@@ -162,50 +162,33 @@ rio.auth = () => {
 rio.monitor = () => {
     const socket = require('./socket')
 
+    const valve = {
+        caller: util.throttle(),
+        pools: []
+    }
+
+    valve.push = (req, response) => {
+        valve.pools.push({
+            path: req.originalUrl.split('?')[0],
+            method: req.method,
+            query: req.query,
+            body: req.body,
+            header: req.headers,
+            duration: Date.now() - req.u.receive,
+            response,
+        })
+
+        valve.caller.execute(() => {
+            socket.emit('common:core:rio:monitor', valve.pools, { room: 'common:core:rio' })
+            valve.pools = []
+        })
+    }
+
     return (req, res, next) => {
         req.u.receive = Date.now()
 
-        const caller = util.throttle(500)
-
-        res.u.on('success', (response) => {
-            caller.execute(() => {
-                socket.emit(
-                    'common:core:rio:monitor',
-                    {
-                        path: req.originalUrl.split('?')[0],
-                        method: req.method,
-                        query: req.query,
-                        body: req.body,
-                        header: req.headers,
-                        duration: Date.now() - req.u.receive,
-                        response,
-                    },
-                    {
-                        room: 'common:core:rio',
-                    },
-                )
-            })
-        })
-
-        res.u.on('error', (response) => {
-            caller.execute(() => {
-                socket.emit(
-                    'common:core:rio:monitor',
-                    {
-                        path: req.originalUrl.split('?')[0],
-                        method: req.method,
-                        query: req.query,
-                        body: req.body,
-                        header: req.headers,
-                        duration: Date.now() - req.u.receive,
-                        response,
-                    },
-                    {
-                        room: 'common:core:rio',
-                    },
-                )
-            })
-        })
+        res.u.on('success', (response) => valve.push(req, response))
+        res.u.on('error', (response) => valve.push(req, response))
 
         next()
     }
