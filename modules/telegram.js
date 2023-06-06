@@ -1,7 +1,7 @@
 const { request, config } = require('eroc')
 
 const telegram = {
-    base: 'https://api.telegram.org/bot'
+    base: 'https://api.telegram.org/bot',
 }
 
 telegram.send = async (id, text) => {

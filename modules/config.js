@@ -17,7 +17,7 @@ Object.assign(config, {
     seek_routers: 'routers',
     seek_events: 'events',
 
-    logger_preset: 'console',
+    logger_preset: 'console:debug',
     vanguard_preset: 'token',
 
     websocket_client: '_',

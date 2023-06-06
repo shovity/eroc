@@ -1,9 +1,6 @@
 const config = require('./config')
 const tx = require('./tx')
 
-// Configs
-// config.logger_preset
-
 const logger = {
     transports: [],
 
@@ -17,6 +14,33 @@ const logger = {
         notice: 5,
         info: 6,
         debug: 7,
+    },
+
+    transporter: {
+        /**
+         * Print message to console
+         */
+        console: () => {
+            return (data) => {
+                const clone = Object.assign({}, data)
+                delete clone.stack
+                console.info(clone)
+
+                data.stack && console.info(data.stack)
+            }
+        },
+
+        /**
+         * Pub log message to task (kafka)
+         * Topic: 'logger.create'
+         */
+        task: () => {
+            const task = require('./task')
+
+            return (data) => {
+                process.nextTick(task.emit, 'logger.create', data)
+            }
+        },
     },
 }
 
@@ -77,6 +101,7 @@ const transporter = (data) => {
 const boot = async () => {
     await config.deferred.config
 
+    // Build methods by levels
     for (const level of Object.keys(logger.level)) {
         logger[level] = (message, payload, extra) => {
             const data = prepare({ message, payload, level, ...extra })
@@ -84,57 +109,19 @@ const boot = async () => {
         }
     }
 
+    // Apply preset
     for (const preset of config.logger_preset.split(',')) {
-        if (preset === 'console') {
-            logger.transports.push({
-                handle: (data) => {
-                    const clone = Object.assign({}, data)
-                    delete clone.stack
-                    console.info(clone)
+        const [name, level] = preset.trim().split(':')
 
-                    data.stack && console.info(data.stack)
-                },
-            })
-
+        if (!logger.transporter[name]) {
+            console.error('logger: transporter not found:', name)
             continue
         }
 
-        if (preset === 'task') {
-            const task = require('./task')
-
-            logger.transports.push({
-                handle: (data) => {
-                    process.nextTick(task.emit, 'logger.create', data)
-                },
-            })
-
-            continue
-        }
-
-        if (preset === 'slack') {
-            const slack = require('./slack')
-
-            logger.transports.push({
-                level: 'crit',
-
-                handle: (data) => {
-                    slack.send(
-                        `*System error - ${data.message}*\n` +
-                            `- *URL:* ${data.url}\n` +
-                            `- *SERVICE:* ${data.service}\n` +
-                            `- *PATH:* ${data.path}\n` +
-                            `- *ENV:* ${data.env}\n`,
-                        {
-                            color: '#dc3545',
-                        },
-                    )
-                },
-            })
-
-            continue
-        }
-
-        console.error('logger: preset not found:', preset)
+        logger.transports.push({
+            handle: logger.transporter[name](),
+            level,
+        })
     }
 }
 

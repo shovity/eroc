@@ -164,7 +164,7 @@ rio.monitor = () => {
 
     const valve = {
         caller: util.throttle(),
-        pools: []
+        pools: [],
     }
 
     valve.push = (req, response) => {

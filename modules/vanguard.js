@@ -5,7 +5,6 @@ const tx = require('./tx')
 
 const vanguard = {
     detector: {
-
         /**
          * Detect user form headers.token or cookies.token
          * Success: Mount req.u.user
