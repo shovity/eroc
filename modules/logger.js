@@ -109,9 +109,9 @@ const boot = async () => {
         }
     }
 
-    // Apply preset
-    for (const preset of config.logger_preset.split(',')) {
-        const [name, level] = preset.trim().split(':')
+    // Apply transporter
+    for (const transporter of config.logger_transporter.split(',')) {
+        const [name, level] = transporter.trim().split(':')
 
         if (!logger.transporter[name]) {
             console.error('logger: transporter not found:', name)

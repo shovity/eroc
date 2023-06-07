@@ -10,6 +10,7 @@ Object.assign(config, {
     env: 'local',
     secret: 'terces',
 
+    // Auto seek module location
     seek_static: 'static',
     seek_public: 'public',
     seek_views: 'views',
@@ -17,8 +18,14 @@ Object.assign(config, {
     seek_routers: 'routers',
     seek_events: 'events',
 
-    logger_preset: 'console:debug',
-    vanguard_preset: 'token',
+    // Apply logger transporter. Ex. console, task
+    logger_transporter: 'console:debug',
+
+    // Apply vanguard detector and supervisor
+    // Ex. vanguard_detector = token, cookie, client, cms
+    // Ex. vanguard_supervisor = tiat, internal, ui, login
+    vanguard_detector: '',
+    vanguard_supervisor: '',
 
     websocket_client: '_',
     websocket_emitter: 'socket/in/emitter',
