@@ -23,7 +23,7 @@ tasks.on = (name, handle) => {
      * Disable comsumer group and from beginning in local
      * then it's like event
      */
-    if (config.env === 'local') {
+    if (process.env.NODE_ENV === 'development') {
         option.fb = false
         option.group += Date.now()
     }
