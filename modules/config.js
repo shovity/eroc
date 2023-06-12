@@ -24,7 +24,7 @@ Object.assign(config, {
     // Apply vanguard detector and supervisor
     // Ex. vanguard_detector = token, cookie, client, cms
     // Ex. vanguard_supervisor = tiat, internal, ui, login
-    vanguard_detector: '',
+    vanguard_detector: 'token, cookie',
     vanguard_supervisor: '',
 
     websocket_client: '_',
