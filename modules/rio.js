@@ -69,7 +69,7 @@ rio.base = () => {
             res.status(option.code || 200)
             res.json(response)
 
-            res.u.emit('rsuccess', response)
+            res.u.emit('response_success', response)
         }
 
         res.error = (error) => {
