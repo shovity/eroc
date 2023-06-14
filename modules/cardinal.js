@@ -85,8 +85,8 @@ cardinal.setup = async (middle) => {
         }
 
         if (req) {
-            config.url = req.originalUrl
-            config.method = req.method
+            response.url = req.originalUrl
+            response.method = req.method
         }
 
         if (typeof error === 'object') {
