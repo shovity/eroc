@@ -69,7 +69,7 @@ rio.base = () => {
             res.status(option.code || 200)
             res.json(response)
 
-            res.u.emit('success', response)
+            res.u.emit('rsuccess', response)
         }
 
         res.error = (error) => {
@@ -188,8 +188,8 @@ rio.monitor = () => {
     return (req, res, next) => {
         req.u.receive = Date.now()
 
-        res.u.on('success', (response) => valve.push(req, response))
-        res.u.on('error', (response) => valve.push(req, response))
+        res.u.on('response_success', (response) => valve.push(req, response))
+        res.u.on('response_error', (response) => valve.push(req, response))
 
         next()
     }

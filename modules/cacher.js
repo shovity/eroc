@@ -35,7 +35,7 @@ cacher.middle = (option) => {
             res.append('cacher', 'disable')
         }
 
-        res.u.on('success', (data) => {
+        res.u.on('response_success', (data) => {
             redis.set(key, data)
             redis.expire(key, option.expire)
         })

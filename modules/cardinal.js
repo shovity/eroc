@@ -73,17 +73,20 @@ cardinal.setup = async (middle) => {
     })
 
     // Top-level and centrally exceptions
-    app.use((error, req, res, next) => {
+    const onError = (error, req, res, next) => {
         // Handle express error
         // error throw from sync handle and next(err)
 
         const response = {
             message: 'Unknow error',
             service: config.service,
-            url: req.originalUrl,
-            method: req.method,
             env: config.env,
             txid: tx.get('txid'),
+        }
+
+        if (req) {
+            config.url = req.originalUrl
+            config.method = req.method
         }
 
         if (typeof error === 'object') {
@@ -105,8 +108,18 @@ cardinal.setup = async (middle) => {
             stack: error.stack,
         })
 
-        res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
-        res.u.emit('error', { error: response })
+        if (res) {
+            res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
+            res.u.emit('response_error', { error: response })
+        }
+    }
+
+    // Express exception
+    app.use(onError)
+
+    // Unhandled Rejection
+    process.on('unhandledRejection', (error) => {
+        onError(error)
     })
 
     if (config.api_monitor) {
