@@ -2,6 +2,10 @@ const mongoose = require('mongoose')
 const config = require('./config')
 const task = require('./task')
 
+const subscribe = {
+    pool: {},
+}
+
 mongoose.__model = mongoose.model
 
 mongoose.model = (name, schema, collection) => {
@@ -75,7 +79,17 @@ mongoose.model = (name, schema, collection) => {
         }
 
         for (const [topic, paths] of Object.entries(group)) {
-            task.on(`mongoose.${topic}`, async (data) => {
+            if (!subscribe.pool[topic]) {
+                subscribe.pool[topic] = []
+
+                task.on(`mongoose.${topic}`, async (data) => {
+                    for (const handle of subscribe.pool[topic]) {
+                        await handle(data)
+                    }
+                })
+            }
+
+            subscribe.pool[topic].push(async (data) => {
                 for (const path of paths) {
                     const query = {
                         [`${path}._id`]: data._id,
