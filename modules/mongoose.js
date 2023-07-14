@@ -100,7 +100,11 @@ mongoose.model = (name, schema, collection) => {
                     }
 
                     for (const [key, value] of Object.entries(data)) {
-                        update.$set[`${path}.${key}`] = value
+                        if (schema.paths[path]?.instance === 'Array') {
+                            update.$set[`${path}.$.${key}`] = value
+                        } else {
+                            update.$set[`${path}.${key}`] = value
+                        }
                     }
 
                     await mongoose.models[name].updateMany(query, update)
