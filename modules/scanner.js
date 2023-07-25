@@ -16,13 +16,13 @@ scanner.router = async (dir) => {
                 return path.slice(0, -9)
             }
 
-            return path
+            return path.slice(0, -3)
         })
         .sort()
 
     for (const path of paths) {
         const module = require(path)
-        const matchs = path.slice(resolve(dir).length, -3).split('/')
+        const matchs = path.slice(resolve(dir).length).split('/')
 
         if (typeof module !== 'function') {
             console.warn(`eroc - warn: router not a function - ${path}`)
