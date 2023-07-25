@@ -15,7 +15,7 @@ const setting = request.setting
 request.fetch = ({ url, method, body, param, option }) => {
     option = Object.assign(
         {
-            // parse: 'json',
+            parse: 'json',
             // timeout: 30000,
             // formData: false,
             // header: {},
@@ -76,11 +76,7 @@ request.fetch = ({ url, method, body, param, option }) => {
 
     return fetch(url, arg)
         .then((res) => {
-            if (option.parse === 'text') {
-                return res.text()
-            }
-
-            return res.json()
+            return res[option.parse]()
         })
         .then((res) => {
             if (res.error) {
