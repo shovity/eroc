@@ -102,6 +102,10 @@ cardinal.setup = async (middle) => {
             response.code = `${config.service}.${code}`.trim()
         }
 
+        if (cardinal.breaker(response)) {
+            return
+        }
+
         const payload = typeof error === 'object' ? Object.assign({}, error) : {}
 
         logger.debug(response.message, payload, {
@@ -138,6 +142,12 @@ cardinal.setup = async (middle) => {
     }
 
     config.deferred.setup.resolve()
+}
+
+cardinal.breaker = (response) => {
+    if (response.url === '/socket/in/emitter') {
+        return
+    }
 }
 
 cardinal.boot = async () => {
