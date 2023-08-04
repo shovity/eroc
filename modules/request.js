@@ -3,14 +3,7 @@ const AbortController = require('abort-controller')
 const config = require('./config')
 const tx = require('./tx')
 
-const request = {
-    setting: {
-        header: {},
-        base: config.request_base,
-    },
-}
-
-const setting = request.setting
+const request = {}
 
 request.fetch = ({ url, method, body, param, option }) => {
     option = Object.assign(
@@ -29,7 +22,6 @@ request.fetch = ({ url, method, body, param, option }) => {
 
         method,
         headers: {
-            ...setting.header,
             ...option.header,
             'x-txid': tx.get('txid') || '',
         },
@@ -52,7 +44,7 @@ request.fetch = ({ url, method, body, param, option }) => {
 
         const service = url.split('/')[0]
 
-        url = `http://${setting.base || service}:3000/${url}`
+        url = `http://${config.request_base || service}:3000/${url}`
         arg.headers['client'] = config.client
     }
 

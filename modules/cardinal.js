@@ -146,7 +146,7 @@ cardinal.setup = async (middle) => {
 
 cardinal.breaker = (response) => {
     if (response.url === '/socket/in/emitter') {
-        return
+        return true
     }
 }
 
