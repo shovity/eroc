@@ -71,10 +71,14 @@ mongoose.model = (name, schema, collection) => {
         const group = {}
 
         for (const [path, topic] of Object.entries(option.subscribe)) {
-            if (!group[topic]) {
-                group[topic] = [path]
-            } else {
-                group[topic].push(path)
+            const topics = Array.isArray(topic) ? topic : [topic]
+
+            for (const t of topics) {
+                if (!group[t]) {
+                    group[t] = [path]
+                } else {
+                    group[t].push(path)
+                }
             }
         }
 
