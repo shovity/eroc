@@ -103,15 +103,18 @@ mongoose.model = (name, schema, collection) => {
                         $set: {},
                     }
 
+                    const option = {}
+
                     for (const [key, value] of Object.entries(data)) {
                         if (schema.paths[path]?.instance === 'Array') {
-                            update.$set[`${path}.$.${key}`] = value
+                            update.$set[`${path}.$[filter].${key}`] = value
+                            option.arrayFilters = [{ 'filter._id': data._id }]
                         } else {
                             update.$set[`${path}.${key}`] = value
                         }
                     }
 
-                    await mongoose.models[name].updateMany(query, update)
+                    await mongoose.models[name].updateMany(query, update, option)
                 }
             })
         }
