@@ -46,16 +46,16 @@ cardinal.setup = async (middle) => {
 
     app.use(tx.init())
 
-    // gp success error
+    // Add gp success error
     app.use(rio.base())
-    // u
+    // Add u
     app.use(rio.util())
-    // auth
+    // Add auth
     app.use(rio.auth())
 
     await cardinal.boot()
 
-    // monitor
+    // Monitor
     config.rio_monitor && app.use(rio.monitor())
 
     app.use(path.join('/', config.router_prefix || config.service), rio.default())
@@ -74,8 +74,10 @@ cardinal.setup = async (middle) => {
 
     // Top-level and centrally exceptions
     const onError = (error, req, res, next) => {
-        // Handle express error
-        // error throw from sync handle and next(err)
+        /**
+         * Handle express error
+         * error throw from sync handle and next(err)
+         */
 
         const response = {
             message: 'Unknow error',

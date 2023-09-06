@@ -4,7 +4,7 @@ const redis = require('./redis')
 const cacher = {}
 
 cacher.middle = (option) => {
-    // default option
+    // Default option
     option = Object.assign(
         {
             expire: 173200, // 3d
