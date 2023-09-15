@@ -1,7 +1,6 @@
 const http = require('http')
 const path = require('path')
 const express = require('express')
-const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const exphbs = require('express-handlebars')
 const config = require('./config')
@@ -35,6 +34,8 @@ cardinal.setup = async (middle) => {
     const app = cardinal.app
     const hbs = exphbs.create({ extname: 'html' })
 
+    await cardinal.boot()
+
     app.engine('html', hbs.engine)
     app.set('views', path.resolve(config.app_dir, config.seek_views))
     app.set('view engine', 'html')
@@ -43,21 +44,16 @@ cardinal.setup = async (middle) => {
     app.use(express.urlencoded({ extended: false }))
     app.use(cookieParser())
 
-    app.use(cors({
-        origin: config.cors_origin || '*',
-        credentials: true,
-    }))
-
     app.use(tx.init())
 
+    // Use cors
+    app.use(rio.cors())
     // Add gp success error
     app.use(rio.base())
     // Add u
     app.use(rio.util())
     // Add auth
     app.use(rio.auth())
-
-    await cardinal.boot()
 
     // Monitor
     config.rio_monitor && app.use(rio.monitor())

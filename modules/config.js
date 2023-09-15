@@ -9,6 +9,7 @@ Object.assign(config, {
     port: 3000,
     env: 'local',
     secret: 'terces',
+    cors_origin: '*',
 
     // Auto seek module location
     seek_static: 'static',

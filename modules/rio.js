@@ -214,4 +214,17 @@ rio.default = () => {
     return router
 }
 
+rio.cors = () => {
+    return (req, res, next) => {
+        const origins = config.cors_origin.split(',')
+
+        if (origins.includes(req.headers.origin)) {
+            res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+            res.header('Access-Control-Allow-Credentials', true)
+        }
+
+        return next()
+    }
+}
+
 module.exports = rio
