@@ -222,8 +222,10 @@ rio.cors = () => {
             res.setHeader('Access-Control-Allow-Origin', '*')
         } else if (origins.includes(req.headers.origin)) {
             res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
-            res.header('Access-Control-Allow-Credentials', true)
         }
+
+        res.header('Access-Control-Allow-Credentials', 'true')
+        res.header('Access-Control-Allow-Headers', '*')
 
         return next()
     }
