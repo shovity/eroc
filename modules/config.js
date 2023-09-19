@@ -9,6 +9,8 @@ Object.assign(config, {
     port: 3000,
     env: 'local',
     secret: 'terces',
+
+    // Config for CORS Ex. '' | '*' | 'origin1,origin2'
     cors_origin: '*',
 
     // Auto seek module location
