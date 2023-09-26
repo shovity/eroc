@@ -226,6 +226,7 @@ rio.cors = () => {
 
         res.header('Access-Control-Allow-Credentials', 'true')
         res.header('Access-Control-Allow-Headers', '*')
+        res.header('Access-Control-Allow-Methods', '*')
 
         return next()
     }
