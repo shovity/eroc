@@ -16,7 +16,6 @@ jwt.sign = async (data, option = {}) => {
 }
 
 jwt.verify = async (token, option = {}) => {
-    console.log(token)
     const secret = new TextEncoder().encode(option.secret || config.secret)
     const decoded = await await jose.jwtVerify(token, secret)
     
