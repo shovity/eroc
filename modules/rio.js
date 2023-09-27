@@ -1,4 +1,4 @@
-const Event = require('events')
+const Event = require('node:events')
 const util = require('./util')
 const Router = require('./Router')
 const config = require('./config')

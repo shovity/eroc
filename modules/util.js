@@ -1,5 +1,5 @@
-const { resolve } = require('path')
-const fs = require('fs').promises
+const { resolve } = require('node:path')
+const fs = require('node:fs').promises
 
 const util = {}
 

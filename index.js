@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 
 global.check = (condition, message) => {
     if (!condition) {

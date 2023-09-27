@@ -1,4 +1,5 @@
-const { request, config } = require('eroc')
+const config = require('./config')
+const request = require('./request')
 
 const telegram = {
     base: 'https://api.telegram.org/bot',

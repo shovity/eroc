@@ -1,5 +1,5 @@
-const http = require('http')
-const path = require('path')
+const http = require('node:http')
+const path = require('node:path')
 const express = require('express')
 const cookieParser = require('cookie-parser')
 const exphbs = require('express-handlebars')
@@ -7,6 +7,7 @@ const config = require('./config')
 const scanner = require('./scanner')
 const util = require('./util')
 const logger = require('./logger')
+const tx = require('./tx')
 
 const cardinal = {
     app: null,
@@ -30,7 +31,7 @@ cardinal.create = (middle) => {
 cardinal.setup = async (middle) => {
     const vanguard = require('./vanguard')
     const rio = require('./rio')
-    const tx = require('./tx')
+
     const app = cardinal.app
     const hbs = exphbs.create({ extname: 'html' })
 
@@ -169,7 +170,6 @@ cardinal.boot = async () => {
                 })
         }
 
-        mongoose.set('strictQuery', false)
         connect()
     }
 }

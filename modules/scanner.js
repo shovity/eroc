@@ -1,4 +1,4 @@
-const { resolve } = require('path')
+const { resolve } = require('node:path')
 const Router = require('./Router')
 const util = require('./util')
 

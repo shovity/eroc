@@ -1,9 +1,3 @@
-/**
- * * Transaction
- * Hold and handle transaction context
- * Each transaction start per request
- */
-
 const { AsyncLocalStorage } = require('node:async_hooks')
 const uuid = require('uuid')
 
