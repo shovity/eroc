@@ -72,61 +72,11 @@ cardinal.setup = async (middle) => {
         return res.status(404).error('404 Not found')
     })
 
-    // Top-level and centrally exceptions
-    const onError = (error, req, res, next) => {
-        /**
-         * Handle express error
-         * error throw from sync handle and next(err)
-         */
-
-        const response = {
-            message: 'Unknow error',
-            service: config.service,
-            env: config.env,
-            txid: tx.get('txid'),
-        }
-
-        if (req) {
-            response.url = req.originalUrl
-            response.method = req.method
-        }
-
-        if (typeof error === 'object') {
-            Object.assign(response, error)
-            response.message = error.message || error._message || 'Unknow error'
-        } else if (typeof error === 'string') {
-            response.message = error
-        }
-
-        if (response.message.includes('code:')) {
-            const [message, code] = response.message.split('code:')
-            response.message = message.trim()
-            response.code = `${config.service}.${code}`.trim()
-        }
-
-        if (cardinal.breaker(response)) {
-            return
-        }
-
-        const payload = typeof error === 'object' ? Object.assign({}, error) : {}
-
-        logger.debug(response.message, payload, {
-            stack: error.stack,
-        })
-
-        if (res) {
-            res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
-            res.u.emit('response_error', { error: response })
-        }
-    }
-
     // Express exception
-    app.use(onError)
+    app.use(cardinal.onError)
 
     // Unhandled Rejection
-    process.on('unhandledRejection', (error) => {
-        onError(error)
-    })
+    process.on('unhandledRejection', cardinal.onError)
 
     if (config.api_monitor) {
         const ele = require('express-list-endpoints')
@@ -144,6 +94,52 @@ cardinal.setup = async (middle) => {
     }
 
     config.deferred.setup.resolve()
+}
+
+/**
+ * Handle express error
+ * error throw from sync handle and next(err)
+ */
+cardinal.onError = (error, req, res, next) => {
+    const response = {
+        message: 'Unknow error',
+        service: config.service,
+        env: config.env,
+        txid: tx.get('txid'),
+    }
+
+    if (req) {
+        response.url = req.originalUrl
+        response.method = req.method
+    }
+
+    if (typeof error === 'object') {
+        Object.assign(response, error)
+        response.message = error.message || error._message || 'Unknow error'
+    } else if (typeof error === 'string') {
+        response.message = error
+    }
+
+    if (response.message.includes('code:')) {
+        const [message, code] = response.message.split('code:')
+        response.message = message.trim()
+        response.code = code.trim()
+    }
+
+    if (cardinal.breaker(response)) {
+        return
+    }
+
+    const payload = typeof error === 'object' ? Object.assign({}, error) : {}
+
+    logger.debug(response.message, payload, {
+        stack: error.stack,
+    })
+
+    if (res) {
+        res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
+        res.u.emit('response_error', { error: response })
+    }
 }
 
 cardinal.breaker = (response) => {

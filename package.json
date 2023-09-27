@@ -14,6 +14,7 @@
     "express": "^4.18.2",
     "express-handlebars": "^6.0.6",
     "express-list-endpoints": "^6.0.0",
+    "jose": "^4.14.6",
     "jsonwebtoken": "^9.0.0",
     "kafkajs": "^2.2.3",
     "mongoose": "^6.8.1",
