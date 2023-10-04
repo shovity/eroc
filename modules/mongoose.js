@@ -93,6 +93,18 @@ mongoose.model = (name, schema, collection) => {
                 })
             }
 
+            for (const path of paths) {
+                let primary
+
+                if (schema.paths[path]?.instance === 'Array') {
+                    primary = schema.paths[path].schema.paths._id
+                } else {
+                    primary = schema.paths[`${path}._id`]
+                }
+
+                check(primary.instance === 'String', `Missing string primary property ${name}.${path}._id`)
+            }
+
             subscribe.pool[topic].push(async (data) => {
                 for (const path of paths) {
                     const query = {
@@ -104,6 +116,9 @@ mongoose.model = (name, schema, collection) => {
                     }
 
                     const option = {}
+
+                    delete data._id
+                    delete data.updatedAt
 
                     for (const [key, value] of Object.entries(data)) {
                         if (schema.paths[path]?.instance === 'Array') {
