@@ -117,9 +117,6 @@ mongoose.model = (name, schema, collection) => {
 
                     const option = {}
 
-                    delete data._id
-                    delete data.updatedAt
-
                     for (const [key, value] of Object.entries(data)) {
                         if (schema.paths[path]?.instance === 'Array') {
                             update.$set[`${path}.$[filter].${key}`] = value
