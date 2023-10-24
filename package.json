@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "format": "prettier --write .",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "test": "cd test && sh start.sh"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",

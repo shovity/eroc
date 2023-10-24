@@ -12,7 +12,7 @@ const logger = () => {
     return ({ log }) => {
         const { message } = log
 
-        console.log(`kafka: ${message}`)
+        console.info(`kafka: ${message}`)
     }
 }
 
@@ -37,7 +37,7 @@ const boot = async () => {
     await kafka.producer.connect()
 
     kafka.ready.resolve()
-    console.log(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
+    console.info(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
 }
 
 kafka.pub = async (topic, message = null) => {

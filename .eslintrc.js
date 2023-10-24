@@ -20,5 +20,6 @@ module.exports = {
     },
     globals: {
         check: true,
+        test: true,
     },
 }

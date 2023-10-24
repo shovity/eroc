@@ -77,7 +77,9 @@ request.fetch = ({ url, method, body, param, option }) => {
             return Promise.resolve(res)
         })
         .finally(() => {
-            clearTimeout(holder.timeout)
+            if (holder.timeout) {
+                clearTimeout(holder.timeout)
+            }
         })
 }
 

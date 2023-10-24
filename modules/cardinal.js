@@ -22,7 +22,7 @@ cardinal.create = (middle) => {
     cardinal.server = server
 
     cardinal.setup(middle).catch((error) => {
-        console.log('cardinal: ERROR - Setup application failed:', error)
+        console.error('cardinal: ERROR - Setup application failed:', error)
     })
 
     return { app, server }
@@ -59,7 +59,9 @@ cardinal.setup = async (middle) => {
     // Monitor
     config.rio_monitor && app.use(rio.monitor())
 
+    // Add _status api
     app.use(path.join('/', config.router_prefix || config.service), rio.default())
+
     app.use(vanguard.detect())
     app.use(vanguard.supervise())
 
@@ -82,15 +84,15 @@ cardinal.setup = async (middle) => {
     if (config.api_monitor) {
         const ele = require('express-list-endpoints')
 
-        console.log('cardinal: 🧬 list apis')
+        console.info('cardinal: 🧬 list apis')
         ele(app).forEach((api) => {
-            api.methods.forEach((m) => console.log(`    ${m.padEnd(6)}${api.path}`))
+            api.methods.forEach((m) => console.info(`    ${m.padEnd(6)}${api.path}`))
         })
     }
 
     if (config.port) {
         cardinal.server.listen(config.port, () => {
-            console.log(`cardinal: 🍔 HTTP server ready! - port=${config.port}`)
+            console.info(`cardinal: 🍔 HTTP server ready! - port=${config.port}`)
         })
     }
 
@@ -161,7 +163,7 @@ cardinal.boot = async () => {
                     authSource: 'admin',
                 })
                 .then(() => {
-                    console.log(`mongo: 🍱 Connected - ${config.mongo_uri}`)
+                    console.info(`mongo: 🍱 Connected - ${config.mongo_uri}`)
                 })
                 .catch((error) => {
                     console.error(error)

@@ -24,9 +24,9 @@ const logger = {
             return (data) => {
                 const clone = Object.assign({}, data)
                 delete clone.stack
-                console.info(clone)
+                console.error(clone)
 
-                data.stack && console.info(data.stack)
+                data.stack && console.error(data.stack)
             }
         },
 

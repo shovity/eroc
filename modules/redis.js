@@ -9,7 +9,7 @@ redis.client = origin.createClient({ url: config.redis_uri })
 redis.client.connect()
 
 redis.client.on('connect', () => {
-    console.log(`redis: 🍉 Connected - ${config.redis_uri}`)
+    console.info(`redis: 🍉 Connected - ${config.redis_uri}`)
 })
 
 redis.cmd = async (...arg) => {

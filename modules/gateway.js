@@ -41,7 +41,7 @@ module.exports = () => {
         proxy.web(req, res, { target: `http://${service}:3000/${service}` }, (error) => {
             if (config.gateway_fallback) {
                 // Pass to developer center service
-                console.log(`gateway: fall back gateway ${config.gateway_fallback} - ${req.originalUrl}`)
+                console.info(`gateway: fall back gateway ${config.gateway_fallback} - ${req.originalUrl}`)
                 proxy.web(req, res, { target: `${config.gateway_fallback}/${service}` }, (error) => {
                     return next(error)
                 })

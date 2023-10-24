@@ -62,7 +62,7 @@ mongoose.model = (name, schema, collection) => {
 
                 task.emit(topic, data)
             } catch (error) {
-                console.info('mongoose: publish error', error)
+                console.error('mongoose: publish error', error)
             }
         })
     }

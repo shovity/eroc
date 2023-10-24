@@ -10,7 +10,7 @@ Object.assign(config, {
     env: 'local',
     secret: 'terces',
 
-    // Config for CORS Ex. '' | '*' | 'origin1,origin2'
+    // Config for CORS E.g. '' | '*' | 'origin1,origin2'
     cors_origin: '*',
 
     // Auto seek module location
@@ -21,7 +21,7 @@ Object.assign(config, {
     seek_routers: 'routers',
     seek_events: 'events',
 
-    // Apply logger transporter. Ex. console, task
+    // Apply logger transporter. E.g. console, task
     logger_transporter: 'console:debug',
 
     // Apply vanguard detector and supervisor

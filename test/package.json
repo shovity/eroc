@@ -1,0 +1,17 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "main": "app.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon app -L"
+  },
+  "dependencies": {
+    "eroc": "file:.."
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
