@@ -20,4 +20,4 @@ echo Clear testing environment...
 echo
 docker compose down
 
-exit 1
+exit $status
