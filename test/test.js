@@ -47,7 +47,7 @@ module.exports = {
             test.status = '❌ failed'
         }
 
-        console.log(`${test.status}: ${(Date.now() - test.start + 'ms').padEnd(6)} 🔬 ${test.name}`)
+        console.log(`${test.status}: ${(Date.now() - test.start + 'ms').padEnd(5)} 🔬 ${test.name}`)
         test.error && console.log('   ', test.error)
 
         if (this.shouldFinishTimer) {
@@ -63,7 +63,7 @@ module.exports = {
 
     finish() {
         console.log(`Test completed: ${this.passed}/${this.total} passed`)
-        process.exit()
+        process.exit(this.passed === this.total ? 0 : 1)
     },
 
     sleep(ms) {
