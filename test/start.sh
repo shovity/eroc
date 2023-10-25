@@ -1,7 +1,9 @@
+# This test is requried yarn, docker and docker compose
+
 echo Setup testing environment...
 echo
 
-yarn
+yarn add file:..
 docker compose build
 docker compose up zookeeper kafka mongodb redis -d
 
@@ -18,6 +20,6 @@ status=$?
 echo
 echo Clear testing environment...
 echo
-docker compose down
+docker compose down -v
 
 exit $status
