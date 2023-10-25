@@ -18,7 +18,7 @@ const main = async () => {
     await test.sleep(1000)
     await prepare()
 
-    const { create, config } = require('eroc')
+    const { create, config, logger } = require('eroc')
 
     test.start('load router')
     test.start('load task')
@@ -38,6 +38,9 @@ const main = async () => {
     config.deferred.setup.then(async () => {
         test.check('setup application')
     })
+
+    test.start('logger path:app')
+    logger.info('logger path:app')
 }
 
 main().catch(console.log)

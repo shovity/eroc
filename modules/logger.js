@@ -43,6 +43,8 @@ const logger = {
                 process.nextTick(task.emit, 'logger.create', data)
             }
         },
+
+        ...config.logger_transporter_handle,
     },
 }
 
