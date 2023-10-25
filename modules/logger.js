@@ -3,6 +3,8 @@ const tx = require('./tx')
 
 const logger = {
     transports: [],
+    buffers: [],
+    ready: false,
 
     // Ordering specified by RFC5424
     level: {
@@ -20,7 +22,7 @@ const logger = {
         /**
          * Print message to console
          */
-        console: () => {
+        console: async () => {
             return (data) => {
                 const clone = Object.assign({}, data)
                 delete clone.stack
@@ -34,7 +36,7 @@ const logger = {
          * Pub log message to task (kafka)
          * Topic: 'logger.create'
          */
-        task: () => {
+        task: async () => {
             const task = require('./task')
 
             return (data) => {
@@ -85,12 +87,14 @@ const prepare = (data) => {
 }
 
 const transporter = (data) => {
+    // If logger not ready because some transporter need to wait 
+    // for configuration or connection then push log to buffer and handle later
+    if (!logger.ready) {
+        logger.buffers.push(data)
+    }
+
     for (const transport of logger.transports) {
         if (transport.level && logger.level[transport.level] < logger.level[data.level]) {
-            continue
-        }
-
-        if (transport.match && !transport.match.test(data.path)) {
             continue
         }
 
@@ -98,16 +102,19 @@ const transporter = (data) => {
     }
 }
 
+/**
+ * Build methods by levels, all methods can use Immediate
+ * by buffer supported
+ */
+for (const level of Object.keys(logger.level)) {
+    logger[level] = (message, payload, extra) => {
+        const data = prepare({ message, payload, level, ...extra })
+        transporter(data)
+    }
+}
+
 const boot = async () => {
     await config.deferred.config
-
-    // Build methods by levels
-    for (const level of Object.keys(logger.level)) {
-        logger[level] = (message, payload, extra) => {
-            const data = prepare({ message, payload, level, ...extra })
-            transporter(data)
-        }
-    }
 
     // Apply transporter
     for (const transporter of config.logger_transporter.split(',')) {
@@ -119,9 +126,16 @@ const boot = async () => {
         }
 
         logger.transports.push({
-            handle: logger.transporter[name](),
+            handle: await logger.transporter[name](),
             level,
         })
+    }
+
+    logger.ready = true
+
+    // Handle buffed log
+    for (const data of logger.buffers) {
+        transporter(data)
     }
 }
 
