@@ -1,10 +1,10 @@
 const config = require('./config')
 const tx = require('./tx')
+const util = require('./util')
 
 const logger = {
     transports: [],
-    buffers: [],
-    ready: false,
+    ready: util.deferred(),
 
     // Ordering specified by RFC5424
     level: {
@@ -22,7 +22,7 @@ const logger = {
         /**
          * Print message to console
          */
-        console: async () => {
+        console: () => {
             return (data) => {
                 const clone = Object.assign({}, data)
                 delete clone.stack
@@ -36,7 +36,7 @@ const logger = {
          * Pub log message to task (kafka)
          * Topic: 'logger.create'
          */
-        task: async () => {
+        task: () => {
             const task = require('./task')
 
             return (data) => {
@@ -86,12 +86,8 @@ const prepare = (data) => {
     return data
 }
 
-const transporter = (data) => {
-    // If logger not ready because some transporter need to wait 
-    // for configuration or connection then push log to buffer and handle later
-    if (!logger.ready) {
-        logger.buffers.push(data)
-    }
+const transporter = async (data) => {
+    await logger.ready
 
     for (const transport of logger.transports) {
         if (transport.level && logger.level[transport.level] < logger.level[data.level]) {
@@ -102,14 +98,10 @@ const transporter = (data) => {
     }
 }
 
-/**
- * Build methods by levels, all methods can use Immediate
- * by buffer supported
- */
 for (const level of Object.keys(logger.level)) {
-    logger[level] = (message, payload, extra) => {
+    logger[level] = async (message, payload, extra) => {
         const data = prepare({ message, payload, level, ...extra })
-        transporter(data)
+        await transporter(data)
     }
 }
 
@@ -126,17 +118,12 @@ const boot = async () => {
         }
 
         logger.transports.push({
-            handle: await logger.transporter[name](),
+            handle: logger.transporter[name](),
             level,
         })
     }
 
-    logger.ready = true
-
-    // Handle buffed log
-    for (const data of logger.buffers) {
-        transporter(data)
-    }
+    logger.ready.resolve()
 }
 
 boot().catch((error) => {
