@@ -9,6 +9,9 @@
     "lint": "eslint . --fix",
     "test": "cd test && sh start.sh"
   },
+  "engines" : { 
+    "node" : ">=16.0.0"
+  },
   "dependencies": {
     "cookie-parser": "^1.4.6",
     "cron": "^3.0.0",
