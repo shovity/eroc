@@ -27,7 +27,7 @@ const main = async () => {
     await test.sleep(200)
 
     const orderAfterUserUpdated = await Order.findOne({ _id: order._id })
-    
+
     test.check(
         'auto sync Order.user',
         orderAfterUserUpdated.user.username === 'Minamoto' &&
