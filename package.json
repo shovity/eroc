@@ -1,6 +1,6 @@
 {
   "name": "eroc",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "main": "index.js",
   "author": "Shovity <shovity@gmail.com",
   "license": "MIT",
@@ -9,8 +9,8 @@
     "lint": "eslint . --fix",
     "test": "cd test && sh start.sh"
   },
-  "engines" : { 
-    "node" : ">=16.0.0"
+  "engines": {
+    "node": ">=16.0.0"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
