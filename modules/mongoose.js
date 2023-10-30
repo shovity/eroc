@@ -96,7 +96,7 @@ mongoose.model = (name, schema, collection) => {
             for (const path of paths) {
                 let primary
 
-                if (schema.paths[path]?.instance === 'Array') {
+                if (['Array', 'Embedded'].includes(schema.paths[path]?.instance)) {
                     primary = schema.paths[path].schema.paths._id
                 } else {
                     primary = schema.paths[`${path}._id`]

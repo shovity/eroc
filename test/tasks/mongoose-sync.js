@@ -7,7 +7,15 @@ const main = async () => {
     test.check('create user')
 
     test.start('create order')
-    const order = await Order.create({ user, item: 'Black T-Shirt' })
+
+    const order = await Order.create({
+        item: 'Black T-Shirt',
+        user: user,
+        embedded: user,
+        embedded2: user,
+        array: [user],
+    })
+
     test.check('create order')
 
     await test.sleep(3000)
@@ -19,7 +27,14 @@ const main = async () => {
     await test.sleep(200)
 
     const orderAfterUserUpdated = await Order.findOne({ _id: order._id })
-    test.check('auto sync Order.user', orderAfterUserUpdated.user.username === 'Minamoto')
+    
+    test.check(
+        'auto sync Order.user',
+        orderAfterUserUpdated.user.username === 'Minamoto' &&
+            orderAfterUserUpdated.embedded.username === 'Minamoto' &&
+            orderAfterUserUpdated.embedded2.username === 'Minamoto' &&
+            orderAfterUserUpdated.array[0].username === 'Minamoto',
+    )
 }
 
 main().catch(console.error)
