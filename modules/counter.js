@@ -36,7 +36,7 @@ counter.get = async (key) => {
 }
 
 counter.set = async (key, value) => {
-    await counter.Counter.updateOne({ key, }, { value })
+    await counter.Counter.updateOne({ key }, { value })
 }
 
 module.exports = counter
