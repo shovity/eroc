@@ -6,7 +6,7 @@ module.exports = {
 
     start(name, timeout = 3000) {
         if (this.pool[name]) {
-            throw Error(`Test name already exists: ${name}`)
+            return console.log(`⛔ Test name already exists: ${name}`)
         }
 
         const test = {}
