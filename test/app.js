@@ -1,5 +1,7 @@
 global.test = require('./test')
 global.console.info = () => undefined
+
+// Comment under line to debug
 global.console.error = () => undefined
 
 const prepare = async () => {
@@ -20,9 +22,9 @@ const main = async () => {
 
     const { create, config, logger } = require('eroc')
 
-    test.start('load router')
-    test.start('load task')
-    test.start('load event')
+    test.start('router load')
+    test.start('task load')
+    test.start('event load')
     test.start('routers middleware')
     test.start('setup application')
     test.start('remote config all')

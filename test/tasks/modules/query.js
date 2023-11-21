@@ -1,5 +1,5 @@
 const { request } = require('eroc')
-const User = require('../models/User')
+const User = require('../../models/User')
 
 const main = async () => {
     const user = await User.create({ username: 'Toge' })

@@ -9,7 +9,7 @@ router.use(async (req, res, next) => {
 
 module.exports = router
 
-test.check('load router')
+test.check('router load')
 
 test.start('logger path:routers/index')
 logger.info('logger path:routers/index')
