@@ -67,7 +67,7 @@ seek_events: 'events'
 logger_transporter: 'console:debug'
 
 // Apply vanguard detector and supervisor
-// Ex. vanguard_detector = token, cookie, client, cms
+// Ex. vanguard_detector = token, cookie, client
 // Ex. vanguard_supervisor = tiat, internal, ui, login
 vanguard_detector: 'token, cookie'
 vanguard_supervisor: ''

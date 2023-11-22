@@ -25,7 +25,7 @@ Object.assign(config, {
     logger_transporter: 'console:debug',
 
     // Apply vanguard detector and supervisor
-    // Ex. vanguard_detector = token, cookie, client, cms
+    // Ex. vanguard_detector = token, cookie, client
     // Ex. vanguard_supervisor = tiat, internal, ui, login
     vanguard_detector: 'token, cookie',
     vanguard_supervisor: '',
@@ -85,7 +85,10 @@ const main = async () => {
             .exec()
 
         for (const raw of remoteConfigRaws) {
-            Object.assign(config, Function('config', raw)(config))
+            Object.assign(
+                config,
+                Function('require', 'config', raw)(require, config),
+            )
         }
 
         client.quit()

@@ -31,22 +31,6 @@ const vanguard = {
                 }
             }
         },
-
-        cms: () => {
-            return async (req) => {
-                const token = req.headers['cms-token']
-
-                if (!req.u.user && token) {
-                    const data = await jwt.verify(token, { secret: config.cms_jwt_secret })
-                    const { data: user } = await request.get(`user/in/users/${data.sub}`)
-                    check(user, 'Missing cms user')
-
-                    req.u.user = user
-                    req.u.user.tiat = Infinity
-                    req.headers.token = jwt.sign(req.u.user)
-                }
-            }
-        },
     },
 
     supervisor: {
@@ -134,6 +118,8 @@ const vanguard = {
 
 vanguard.detect = () => {
     const detectors = []
+
+    Object.assign(vanguard.detector, config.vanguard_detector_handle)
 
     for (const raw of config.vanguard_detector.split(',')) {
         const name = raw.trim()
