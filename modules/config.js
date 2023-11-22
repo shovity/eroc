@@ -78,10 +78,14 @@ const main = async () => {
         const client = redis.createClient({ url: config.redis_uri })
         await client.connect()
 
-        const rcs = await client.multi().hGet('eroc_config', '*').hGet('eroc_config', config.service).exec()
+        const remoteConfigRaws = await client
+            .multi()
+            .hGet('eroc:service', '*')
+            .hGet('eroc:service', config.service)
+            .exec()
 
-        for (const rc of rcs) {
-            Object.assign(config, JSON.parse(rc))
+        for (const raw of remoteConfigRaws) {
+            Object.assign(config, Function('config', raw)(config))
         }
 
         client.quit()
