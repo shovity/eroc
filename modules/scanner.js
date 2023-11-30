@@ -1,6 +1,8 @@
 const { resolve } = require('node:path')
 const Router = require('./Router')
 const util = require('./util')
+const redis = require('./redis')
+const config = require('./config')
 
 const scanner = {}
 
@@ -29,7 +31,22 @@ scanner.router = async (dir) => {
             continue
         }
 
-        router.use(matchs.join('/'), module)
+        const match = matchs.join('/')
+
+        if (config.flag_control) {
+            const key = `router.${config.service}.${match}`
+            const flag = await redis.hget('flag', key)
+    
+            if (flag !== 'inactive') {
+                router.use(match, module)
+            }
+            
+            if (flag === null) {
+                redis.hset('flag', key, 'active')
+            }
+        } else {
+            router.use(match, module)
+        }        
     }
 
     return { router, paths }

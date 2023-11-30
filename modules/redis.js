@@ -29,7 +29,7 @@ redis.set = async (key, value, option) => {
 }
 
 redis.hset = async (key, name, value) => {
-    redis.client.HSET(key, name, JSON.stringify(value))
+    return redis.client.HSET(key, name, JSON.stringify(value))
 }
 
 redis.hget = async (key, name) => {

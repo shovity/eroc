@@ -33,6 +33,8 @@ Object.assign(config, {
     websocket_client: '_',
     websocket_emitter: 'socket/in/emitter',
 
+    flag_control: false,
+
     deferred: {},
 })
 
