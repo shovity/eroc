@@ -87,10 +87,7 @@ const main = async () => {
             .exec()
 
         for (const raw of remoteConfigRaws) {
-            Object.assign(
-                config,
-                Function('require', 'config', raw)(require, config),
-            )
+            Object.assign(config, Function('require', 'config', raw)(require, config))
         }
 
         client.quit()

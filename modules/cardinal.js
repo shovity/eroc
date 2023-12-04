@@ -215,21 +215,8 @@ cardinal.seek = async () => {
         })
     }
 
-    if (await util.readble(config.seek_events)) {
-        const paths = await util.getFiles(config.seek_events)
-
-        for (const p of paths) {
-            require(p)
-        }
-    }
-
-    if (await util.readble(config.seek_tasks)) {
-        const paths = await util.getFiles(config.seek_tasks)
-
-        for (const p of paths) {
-            require(p)
-        }
-    }
+    await scanner.event()
+    await scanner.task()
 }
 
 cardinal.monitoring = async () => {
