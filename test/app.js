@@ -9,8 +9,8 @@ const prepare = async () => {
     const client = redis.createClient({ url: 'redis://redis' })
     await client.connect()
 
-    await client.hSet('eroc_config', '*', JSON.stringify({ remote_config_all: true }))
-    await client.hSet('eroc_config', 'example', JSON.stringify({ remote_config_example: true }))
+    await client.hSet('eroc:service', '*', 'return { remote_config_all: true }')
+    await client.hSet('eroc:service', 'example', 'return { remote_config_example: true }')
 
     client.quit()
 }
