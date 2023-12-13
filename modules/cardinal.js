@@ -129,23 +129,20 @@ cardinal.onError = (error, req, res, next) => {
         response.code = code.trim()
     }
 
-    if (cardinal.breaker(response)) {
-        return
-    }
-
-    const payload = typeof error === 'object' ? Object.assign({}, error) : {}
-
-    logger.debug(response.message, payload, {
-        stack: error.stack,
-    })
-
     if (res) {
         res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
-        res.u.emit('response_error', { error: response })
+    }
+
+    if (!cardinal.silent(response)) {
+        logger.debug(response.message, typeof error === 'object' ? Object.assign({}, error) : {}, {
+            stack: error.stack,
+        })
+
+        res && res.u.emit('response_error', { error: response })
     }
 }
 
-cardinal.breaker = (response) => {
+cardinal.silent = (response) => {
     if (response.url === '/socket/in/emitter') {
         return true
     }
