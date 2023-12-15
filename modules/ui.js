@@ -1,6 +1,6 @@
 const Router = require('./Router')
 
-module.exports = (template, command = {}) => {
+const ui = (template, command = {}) => {
     const router = Router()
 
     if (command.middle) {
@@ -41,3 +41,42 @@ module.exports = (template, command = {}) => {
 
     return router
 }
+
+ui.table = (model, inject) => {
+    return async (req, res, next) => {
+        const modes = req.gp('modes', ['data', 'total'])
+
+        const param = {}
+
+        param.limit = req.gp('limit', 12, Number)
+        param.offset = req.gp('offset', 0, Number)
+        param.draw = req.gp('draw', 0)
+
+        param.query = {}
+        param.sort = { _id: -1 }
+
+        if (inject) {
+            await inject(req, param)
+        }
+
+        const response = {
+            data: [],
+
+            meta: {
+                draw: param.draw,
+            }
+        }
+
+        if (modes.includes('total')) {
+            response.meta.total = await model.countDocuments(param.query)
+        }
+
+        if (modes.includes('data')) {
+            response.data = await model.find(param.query).sort(param.sort).skip(param.offset).limit(param.limit)
+        }
+
+        return res.success(response.data, { meta: response.meta })
+    }
+}
+
+module.exports = ui
