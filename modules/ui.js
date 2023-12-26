@@ -64,7 +64,7 @@ ui.table = (model, inject) => {
 
             meta: {
                 draw: param.draw,
-            }
+            },
         }
 
         if (modes.includes('total')) {

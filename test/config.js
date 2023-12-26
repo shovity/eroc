@@ -7,6 +7,7 @@ module.exports = (config) => {
     config.override = 'override me'
 
     config.logger_transporter = 'test'
+    config.event_sourcing_model = '*'
 
     config.logger_transporter_handle = {
         test: () => {

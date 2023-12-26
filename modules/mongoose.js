@@ -11,32 +11,51 @@ mongoose.__model = mongoose.model
 mongoose.model = (name, schema, collection) => {
     const option = schema.options
 
-    if (config.event_sourcing_model === '*' || config.event_sourcing_model?.split(',').includes(name)) {
-        schema.pre('save', async function () {
+    registEventStore(name, schema)
+    registSyncSystem(name, schema, collection, option)
+
+    return mongoose.__model(name, schema, collection)
+}
+
+const registEventStore = (name, schema) => {
+    if (config.event_sourcing_model !== '*' && !config.event_sourcing_model?.split(',').includes(name)) {
+        return
+    }
+
+    const methods = [
+        'save',
+        'updateOne',
+        'deleteOne',
+        'deleteMany',
+        'replaceOne',
+        'updateMany',
+        'findOneAndReplace',
+        'findOneAndUpdate',
+        'findOneAndDelete',
+    ]
+
+    for (const method of methods) {
+        schema.pre(method, async function () {
             const event = {
                 service: config.service,
                 model: name,
-                target: this._id,
-                command: this.getChanges(),
-                method: 'save',
+                method,
             }
 
-            task.emit('mongoose.event', event)
-        })
-
-        schema.pre('updateOne', async function () {
-            const event = {
-                service: config.service,
-                model: name,
-                target: this.getQuery()._id,
-                command: this.getUpdate(),
-                method: 'updateOne',
+            if (this.getQuery) {
+                event.target = this.getQuery()
+                event.command = this.getUpdate()
+            } else {
+                event.target = { _id: this._id }
+                event.command = this.getChanges()
             }
 
             task.emit('mongoose.event', event)
         })
     }
+}
 
+const registSyncSystem = (name, schema, collection, option) => {
     if (option.publish) {
         const topic = `mongoose.${config.service}.${name}`
 
@@ -131,8 +150,6 @@ mongoose.model = (name, schema, collection) => {
             })
         }
     }
-
-    return mongoose.__model(name, schema, collection)
 }
 
 module.exports = mongoose
