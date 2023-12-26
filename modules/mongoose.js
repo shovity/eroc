@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const config = require('./config')
 const task = require('./task')
+const logger = require('./logger')
 
 const subscribe = {
     pool: {},
@@ -39,23 +40,26 @@ const registEventStore = (name, schema) => {
 
     for (const method of methods) {
         schema.pre(method, async function () {
-            const event = {
-                service: config.service,
-                model: name,
-                method,
-            }
+            try {
+                const event = {
+                    service: config.service,
+                    model: name,
+                    method,
+                }
 
-            if (this.getQuery) {
-                event.target = this.getQuery()
-                event.command = this.getUpdate()
-                event.options = this.options
-            } else {
-                event.target = { _id: this._id }
-                event.command = this.getChanges()
-            }
+                if (this.getQuery) {
+                    event.target = this.getQuery()
+                    event.command = this.getUpdate()
+                    event.options = this.options
+                } else {
+                    event.target = { _id: this._id }
+                    event.command = this.getChanges()
+                }
 
-            task.emit('mongoose.event', event)
-            console.log(event)
+                task.emit('mongoose.event', event)
+            } catch (error) {
+                logger.error('mongoose.event error', error)
+            }
         })
     }
 }
