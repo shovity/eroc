@@ -48,6 +48,7 @@ const registEventStore = (name, schema) => {
             if (this.getQuery) {
                 event.target = this.getQuery()
                 event.command = this.getUpdate()
+                event.options = this.options
             } else {
                 event.target = { _id: this._id }
                 event.command = this.getChanges()
