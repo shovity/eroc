@@ -17,6 +17,9 @@ mongoose.model = (name, schema, collection) => {
     return mongoose.__model(name, schema, collection)
 }
 
+/**
+ * ! Model.insertMany and Model.bulkWrite not supported
+ */
 const registEventStore = (name, schema) => {
     if (config.event_sourcing_model !== '*' && !config.event_sourcing_model?.split(',').includes(name)) {
         return
@@ -51,6 +54,7 @@ const registEventStore = (name, schema) => {
             }
 
             task.emit('mongoose.event', event)
+            console.log(event)
         })
     }
 }
