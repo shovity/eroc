@@ -2,6 +2,7 @@ const Event = require('node:events')
 const util = require('./util')
 const Router = require('./Router')
 const config = require('./config')
+const query = require('./query')
 
 const rio = {}
 
@@ -210,6 +211,8 @@ rio.default = () => {
 
         return res.success(data)
     })
+
+    router.use('/in/query', query())
 
     return router
 }

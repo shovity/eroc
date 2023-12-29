@@ -5,16 +5,21 @@ const query = () => {
     const router = Router({ caseSensitive: true })
 
     router.post('/:model', async (req, res, next) => {
-        const model = req.params.model
-        const pipeline = req.body
+        let currsor = mongoose.models[req.params.model]
 
-        let result = mongoose.models[model]
+        if (req.body.find || req.body.findOne) {
+            req.body.lean = true
+        }
 
-        Object.keys(pipeline).forEach((k) => {
-            result = Array.isArray(pipeline[k]) ? result[k](...pipeline[k]) : result[k](pipeline[k])
-        })
+        for (const [method, param] of Object.entries(req.body)) {
+            if (Array.isArray(param)) {
+                currsor = currsor[method](...param)
+            } else {
+                currsor = currsor[method](param)
+            }
+        }
 
-        return res.success(await result)
+        return res.success(await currsor)
     })
 
     return router
