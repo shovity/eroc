@@ -26,6 +26,10 @@ const registEventStore = (name, schema) => {
         return
     }
 
+    if (config.event_sourcing_model_exclude?.split(',').includes(name)) {
+        return
+    }
+
     const methods = [
         'save',
         'updateOne',
