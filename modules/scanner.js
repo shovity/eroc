@@ -1,7 +1,6 @@
 const { resolve } = require('node:path')
 const Router = require('./Router')
 const util = require('./util')
-const redis = require('./redis')
 const config = require('./config')
 
 const scanner = {}
@@ -22,6 +21,7 @@ scanner.router = async (dir) => {
         }
 
         if (config.flag_control) {
+            const redis = require('./redis')
             const key = `router.${config.service}.${path.slice(resolve(dir).length + 1)}`
             const flag = await redis.hget('flag', key)
 
@@ -60,6 +60,7 @@ scanner.event = async () => {
     if (await util.readble(dir)) {
         for (const path of await util.getFiles(dir)) {
             if (config.flag_control) {
+                const redis = require('./redis')
                 const key = `event.${config.service}.${path.slice(resolve(dir).length + 1, -3)}`
                 const flag = await redis.hget('flag', key)
 
@@ -83,6 +84,7 @@ scanner.task = async () => {
     if (await util.readble(dir)) {
         for (const path of await util.getFiles(dir)) {
             if (config.flag_control) {
+                const redis = require('./redis')
                 const key = `task.${config.service}.${path.slice(resolve(dir).length + 1, -3)}`
                 const flag = await redis.hget('flag', key)
 
