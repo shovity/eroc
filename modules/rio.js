@@ -103,7 +103,7 @@ rio.auth = () => {
     return (req, res, next) => {
         req.auth = {
             login: async () => {
-                check(req.u.user, 'Require login')
+                check(req.u.user, 'Require login code:requrie_login')
             },
             role: async (role, interrupt = true) => {
                 const roles = role.split(' ').filter((r) => r)
@@ -147,7 +147,7 @@ rio.auth = () => {
 
                 if (interrupt) {
                     check(util.intersect(has, permissions), {
-                        message: 'Insufficient permission',
+                        message: 'Insufficient permission code:insufficient_permission',
                         require: permissions,
                     })
                 } else {
