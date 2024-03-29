@@ -34,6 +34,7 @@ Object.assign(config, {
     websocket_emitter: 'socket/in/emitter',
 
     flag_control: false,
+    task_max_bounce: 10,
 
     deferred: {},
 })
