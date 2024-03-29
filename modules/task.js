@@ -13,7 +13,7 @@ task.emit = (name, data) => {
 
     const meta = {
         sender: task.asyncLocalStorage.getStore()?.get('sender') || tx.get('txid') || uuid.v4(),
-        bounce: task.asyncLocalStorage.getStore()?.get('bounce') || 0,
+        trips: task.asyncLocalStorage.getStore()?.get('trips') || []
     }
 
     kafka.pub(topic, { data, meta })
@@ -41,11 +41,11 @@ task.on = (name, handle) => {
 
     const wrap = async ({ data, meta }, km) => {
         task.asyncLocalStorage.run(new Map(), () => {
-            meta.bounce++
-            check(meta.bounce <= config.task_max_bounce, 'Task break because out of bounce')
+            meta.trips.push(name)
+            check(meta.trips.length <= config.task_trip_max, `Task break because reached maximum trip: ${meta.trips}`)
 
             task.asyncLocalStorage.getStore().set('sender', meta.sender)
-            task.asyncLocalStorage.getStore().set('bounce', meta.bounce)
+            task.asyncLocalStorage.getStore().set('trips', meta.trips)
 
             meta.timestamp = +km.message.timestamp
             handle(data, meta)
