@@ -9,21 +9,21 @@ task.on('hi', async (data) => {
     logger.info('logger path:tasks/modules/task:inner handle')
 })
 
-task.on('test1', async (data, meta) => {
-    if (meta.trips.lastIndexOf('test1') > 0) {
-        test.check('task trip', true)
+task.on('trip_1', async (_, meta) => {
+    if (meta.loop) {
+        test.check('task trip', meta.trips.length === 4)
         return
     }
 
-    task.emit('test2')
+    task.emit('trip_2')
 })
 
-task.on('test2', async (data, meta) => {
-    task.emit('test3')
+task.on('trip_2', async () => {
+    task.emit('trip_3')
 })
 
-task.on('test3', async (data, meta) => {
-    task.emit('test1')
+task.on('trip_3', async () => {
+    task.emit('trip_1')
 })
 
 setTimeout(() => {
@@ -31,7 +31,7 @@ setTimeout(() => {
     task.emit('hi', 1)
 
     test.start('task trip')
-    task.emit('test1')
+    task.emit('trip_1')
 }, 3000)
 
 test.start('logger path:tasks/modules/task:outer handle')

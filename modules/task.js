@@ -13,7 +13,7 @@ task.emit = (name, data) => {
 
     const meta = {
         sender: task.asyncLocalStorage.getStore()?.get('sender') || tx.get('txid') || uuid.v4(),
-        trips: task.asyncLocalStorage.getStore()?.get('trips') || []
+        trips: task.asyncLocalStorage.getStore()?.get('trips') || [],
     }
 
     kafka.pub(topic, { data, meta })
@@ -41,8 +41,17 @@ task.on = (name, handle) => {
 
     const wrap = async ({ data, meta }, km) => {
         task.asyncLocalStorage.run(new Map(), () => {
+            meta.loop = 0
+
+            for (const trip of meta.trips) {
+                if (trip === name) {
+                    meta.loop++
+                }
+            }
+
             meta.trips.push(name)
             check(meta.trips.length <= config.task_trip_max, `Task break because reached maximum trip: ${meta.trips}`)
+            check(meta.loop <= config.task_loop_max, `Task break because reached maximum loop: ${meta.trips}`)
 
             task.asyncLocalStorage.getStore().set('sender', meta.sender)
             task.asyncLocalStorage.getStore().set('trips', meta.trips.concat())
