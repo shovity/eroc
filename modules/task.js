@@ -45,7 +45,7 @@ task.on = (name, handle) => {
             check(meta.trips.length <= config.task_trip_max, `Task break because reached maximum trip: ${meta.trips}`)
 
             task.asyncLocalStorage.getStore().set('sender', meta.sender)
-            task.asyncLocalStorage.getStore().set('trips', meta.trips)
+            task.asyncLocalStorage.getStore().set('trips', meta.trips.concat())
 
             meta.timestamp = +km.message.timestamp
             handle(data, meta)
