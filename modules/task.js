@@ -3,6 +3,7 @@ const uuid = require('uuid')
 const tx = require('./tx')
 const kafka = require('./kafka')
 const config = require('./config')
+const logger = require('./logger')
 
 const task = {
     asyncLocalStorage: new AsyncLocalStorage(),
@@ -50,8 +51,16 @@ task.on = (name, handle) => {
             }
 
             meta.trips.push(name)
-            check(meta.trips.length <= config.task_trip_max, `Task break because reached maximum trip: ${meta.trips}`)
-            check(meta.loop <= config.task_loop_max, `Task break because reached maximum loop: ${meta.trips}`)
+
+            if (meta.trips.length > config.task_trip_max) {
+                logger.error('Task break because reached maximum trip', meta)
+                return
+            }
+
+            if (meta.loop > config.task_loop_max) {
+                logger.error('Task break because reached maximum loop', meta)
+                return
+            }
 
             task.asyncLocalStorage.getStore().set('sender', meta.sender)
             task.asyncLocalStorage.getStore().set('trips', meta.trips.concat())
