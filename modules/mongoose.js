@@ -60,10 +60,6 @@ const registEventStore = (name, schema) => {
                     event.command = this.getChanges()
                 }
 
-                if (Object.keys(event.command).length === 0) {
-                    return
-                }
-
                 task.emit('mongoose.event', event)
             } catch (error) {
                 logger.error('mongoose.event error', error)
