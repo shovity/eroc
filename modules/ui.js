@@ -14,7 +14,9 @@ const ui = (template, command = {}) => {
             Object.assign(context, await command.context(req, res, next))
         }
 
-        return res.render(template, context)
+        if (!res.writableEnded) {
+            return res.render(template, context)
+        }
     })
 
     router.post('/', (req, res, next) => {
