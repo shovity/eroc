@@ -53,6 +53,7 @@ ui.table = (model, inject) => {
         param.draw = req.gp('draw', 0)
 
         param.query = {}
+        param.project = {}
         param.sort = { _id: -1 }
 
         if (inject) {
@@ -72,7 +73,13 @@ ui.table = (model, inject) => {
         }
 
         if (modes.includes('data')) {
-            response.data = await model.find(param.query).sort(param.sort).skip(param.offset).limit(param.limit)
+            response.data = await model
+                .find(param.query)
+                .sort(param.sort)
+                .skip(param.offset)
+                .limit(param.limit)
+                .select(param.project)
+                .lean()
         }
 
         return res.success(response.data, { meta: response.meta })

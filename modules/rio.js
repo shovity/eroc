@@ -147,7 +147,7 @@ rio.auth = () => {
 
                 if (interrupt) {
                     const accept = permissions.join(', ')
-                    
+
                     check(util.intersect(has, permissions), {
                         message: `Insufficient permission. Accept: ${accept} code:insufficient_permission`,
                         accepts: permissions,
