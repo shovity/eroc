@@ -46,6 +46,24 @@ const main = async () => {
         .catch(() => {
             test.check('vanguard not login')
         })
+
+    test.start('vanguard signature verification failed')
+    request
+        .get(
+            'example/vanguard',
+            {},
+            {
+                header: {
+                    token: (await jwt.sign({ username: 'Yuta', roles: ['staff'] })) + '1',
+                },
+            },
+        )
+        .then(() => {
+            test.check('vanguard signature verification failed', false)
+        })
+        .catch((error) => {
+            test.check('vanguard signature verification failed', error.logout, error)
+        })
 }
 
 main().catch(console.log)

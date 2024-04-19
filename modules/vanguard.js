@@ -47,7 +47,11 @@ const vanguard = {
 
                     if (tiat === null) {
                         res.u.cookie('token', '')
-                        return res.status(401).error('User tiat not found')
+
+                        return next({
+                            message: 'User not found in vanguard code:vanguard_user_not_found',
+                            logout: true,
+                        })
                     }
 
                     if (req.u.user.iat < tiat) {
@@ -56,7 +60,7 @@ const vanguard = {
                         req.u.user = await jwt.verify(data.token)
 
                         if (req.headers.token) {
-                            return res.error({ message: 'Token expired code:token_expired', token: data.token })
+                            return next({ message: 'Token expired code:token_expired', token: data.token })
                         } else {
                             res.u.cookie('token', data.token)
                             req.cookies.token = data.token
@@ -64,12 +68,23 @@ const vanguard = {
                         }
                     }
 
+                    if (req.u.user.status && req.u.user.status !== 'active') {
+                        return next({
+                            message: 'User status not active code:user_status_not_active',
+                            logout: true,
+                        })
+                    }
+
                     next()
                 }
 
                 handle().catch((error) => {
                     res.u.cookie('token', '')
-                    return next(error)
+
+                    return next({
+                        message: error.message || error,
+                        logout: true,
+                    })
                 })
             }
         },
@@ -143,14 +158,19 @@ vanguard.detect = () => {
             if (req.u.user) {
                 tx.set('uid', req.u.user._id)
             }
-
-            next()
         }
 
-        handle().catch((error) => {
+        try {
+            await handle()
+            next()
+        } catch (error) {
             req.cookies.token && res.u.cookie('token', '')
-            return next(error)
-        })
+
+            return next({
+                message: error.message || error,
+                logout: true,
+            })
+        }
     }
 }
 
