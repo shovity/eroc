@@ -41,7 +41,7 @@ task.on = (name, handle) => {
     }
 
     const wrap = async ({ data, meta }, km) => {
-        task.asyncLocalStorage.run(new Map(), () => {
+        return task.asyncLocalStorage.run(new Map(), () => {
             meta.loop = 0
 
             for (const trip of meta.trips) {
@@ -66,7 +66,7 @@ task.on = (name, handle) => {
             task.asyncLocalStorage.getStore().set('trips', meta.trips.concat())
 
             meta.timestamp = +km.message.timestamp
-            handle(data, meta)
+            return handle(data, meta)
         })
     }
 
