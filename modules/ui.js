@@ -48,7 +48,9 @@ ui.table = (model, inject) => {
     return async (req, res, next) => {
         const modes = req.gp('modes', ['data', 'total'])
 
-        const param = {}
+        const param = {
+            middleware: {},
+        }
 
         param.limit = req.gp('limit', 12, Number)
         param.offset = req.gp('offset', 0, Number)
@@ -82,6 +84,10 @@ ui.table = (model, inject) => {
                 .limit(param.limit)
                 .select(param.project)
                 .lean()
+        }
+
+        if (param.middleware.end) {
+            await param.middleware.end(response)
         }
 
         return res.success(response.data, { meta: response.meta })
