@@ -49,8 +49,16 @@ const logger = {
 }
 
 const prepare = (data) => {
+    if (data.payload instanceof Error) {
+        if (!data.stack) {
+            data.stack = data.payload.stack
+        }
+
+        data.payload = Object.assign({}, data.payload, { message: data.payload.message })
+    }
+
     if (data.message instanceof Error) {
-        data.payload = Object.assign({}, data.message)
+        data.payload = Object.assign({}, data.payload, data.message)
         data.message = data.message.message
     }
 

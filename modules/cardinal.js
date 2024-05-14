@@ -134,9 +134,7 @@ cardinal.onError = (error, req, res, next) => {
     }
 
     if (!cardinal.silent(response)) {
-        logger.error(response.message, typeof error === 'object' ? Object.assign({}, error) : {}, {
-            stack: error.stack,
-        })
+        logger.error(response.message, error)
 
         res && res.u.emit('response_error', { error: response })
     }
