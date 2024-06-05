@@ -1,4 +1,3 @@
-const fs = require('node:fs')
 const path = require('node:path')
 const util = require('./util')
 
@@ -33,8 +32,6 @@ Object.assign(config, {
     websocket_client: '_',
     websocket_emitter: 'socket/in/emitter',
 
-    flag_control: false,
-
     /**
      * Task
      */
@@ -51,25 +48,31 @@ const package = require(path.join(config.app_dir, 'package.json'))
 config.service = package.name
 
 // Load config.js
-if (fs.existsSync(path.join(config.app_dir, 'config.js'))) {
-    const handle = require(path.join(config.app_dir, 'config.js'))
+try {
+    const module = require(path.join(config.app_dir, 'config'))
+    const handle = module.default || module
 
     if (typeof handle === 'function') {
         handle(config)
     } else {
         console.error('config: config.js must be a function')
     }
+} catch (_) {
+    //
 }
 
 // Load config.override.js
-if (fs.existsSync(path.join(config.app_dir, 'config.override.js'))) {
-    const handle = require(path.join(config.app_dir, 'config.override.js'))
+try {
+    const module = require(path.join(config.app_dir, 'config.override'))
+    const handle = module.default || module
 
     if (typeof handle === 'function') {
         handle(config)
     } else {
         console.error('config: config.override.js must be a function')
     }
+} catch (_) {
+    //
 }
 
 // Override reids_uri from environment
