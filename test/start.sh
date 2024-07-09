@@ -5,7 +5,11 @@ echo
 
 yarn add file:..
 docker compose build
-docker compose up zookeeper kafka mongodb redis -d
+
+docker compose up zookeeper -d
+docker compose up kafka -d
+docker compose up mongodb -d
+docker compose up redis -d
 
 echo
 echo Setup testing environment done!

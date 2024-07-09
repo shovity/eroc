@@ -32,16 +32,35 @@ rio.base = () => {
             let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)
             check(value !== undefined, `Missing param: ${key} code:missing_param`)
 
+            if (value === defaultValue) {
+                return value
+            }
+
+            if (validate instanceof RegExp) {
+                check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
+                return value
+            }
+
+            if (Array.isArray(validate)) {
+                check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
+                return value
+            }
+
             if (typeof validate === 'function') {
-                const converted = validate(value)
+                const converted = validate(value, key)
 
                 if (converted !== undefined) {
-                    value = converted
+                    return converted
                 }
-            } else if (Array.isArray(validate)) {
-                check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
-            } else if (validate instanceof RegExp) {
-                check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
+            }
+            
+            if (typeof validate === 'object') {
+                const options = Object.values(validate)
+
+                if (options.length) {
+                    check(options.includes(value), `Invalid param ${key}, accept: ${options.join(', ')}`)
+                    return value
+                }
             }
 
             return value
