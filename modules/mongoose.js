@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const config = require('./config')
-const task = require('./task')
 const logger = require('./logger')
 
 const subscribe = {
@@ -29,6 +28,8 @@ const registEventStore = (name, schema) => {
     if (config.event_sourcing_model_exclude?.split(',').includes(name)) {
         return
     }
+
+    const task = require('./task')
 
     const methods = [
         'save',
@@ -70,6 +71,7 @@ const registEventStore = (name, schema) => {
 
 const registSyncSystem = (name, schema, collection, option) => {
     if (option.publish) {
+        const task = require('./task')
         const topic = `mongoose.${config.service}.${name}`
 
         schema.pre('save', async function () {
@@ -100,6 +102,7 @@ const registSyncSystem = (name, schema, collection, option) => {
     }
 
     if (option.subscribe) {
+        const task = require('./task')
         const group = {}
 
         for (const [path, topic] of Object.entries(option.subscribe)) {
