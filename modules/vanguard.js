@@ -23,6 +23,7 @@ const vanguard = {
         },
 
         client: () => {
+            check(config.redis_uri, 'Vangards detector "client" require confnig.redis_uri')
             const redis = require('./redis')
 
             return async (req) => {
@@ -35,6 +36,7 @@ const vanguard = {
 
     supervisor: {
         tiat: () => {
+            check(config.redis_uri, 'Vangards supervisor "tiat" require confnig.redis_uri')
             const redis = require('./redis')
 
             return (req, res, next) => {
@@ -101,6 +103,7 @@ const vanguard = {
         },
 
         ui: () => {
+            check(config.redis_uri, 'Vangards supervisor "ui" require confnig.redis_uri')
             const redis = require('./redis')
             const router = Router()
 

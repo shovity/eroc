@@ -1,7 +1,5 @@
 # THIS COMPOSE USE FOR TESTING
 
-version: '3.7'
-
 services:
   example:
     image: example
