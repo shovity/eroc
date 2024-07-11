@@ -4,7 +4,8 @@ const util = require('./util')
 const config = {}
 
 Object.assign(config, {
-    app_dir: path.dirname(require.main.filename),
+    app_dir: __dirname.split('/node_modules/eroc/modules')[0],
+    // app_dir: path.dirname(require.main.filename),
     port: 3000,
     env: 'local',
     secret: 'terces',
