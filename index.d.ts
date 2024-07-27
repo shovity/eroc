@@ -1,7 +1,17 @@
 import * as config from "./modules/config"
 
+/**
+ * ## Cache with redis
+ * Require **config.redis_uri**
+ */
 export declare const cacher: {
-    middle: (option: {
+    /**
+     * ### Cache response body by middleware
+     * key `cacher:middle:{prefix}:{url.base}:${md5(url.query)}`
+     * @param option Default: {expire: 173200, prefix: ''}
+     * @returns middleware
+     */
+    middle: (option?: {
         expire?: number = 173200
         prefix?: string = ''
     }) => (req?: any, res?: any, next?: any) => void
@@ -28,17 +38,39 @@ export declare const config: {
     task_loop_max: number
 
     deferred: {
-        setup: Promise
-        config: Promise
+        setup: Promise<void>
+        config: Promise<void>
     },
 }
 
+/**
+ * ## Get auto increment value
+ * Store in **Mongodb**  
+ * Require **config.mongodb_uri**
+ */
 export declare const counter: {
+    /**
+     * ### Increment and return value  
+     * @param key Identify key
+     * @returns Value after increment
+     */
     get: (key: string) => Promise<number>
+
+    /**
+     * ### Set counter value
+     * @param key Identify key
+     * @param value Value
+     */
     set: (key: string, value: number) => Promise<void>
 }
 
-export declare const create: (middle: (app: any) => void) => { app: any, server: any }
+/**
+ * ### Create application instance and http server
+ * Server will listen on **config.port** if it set
+ * 
+ * @param middle Call after vangaurd and before seeking resources
+ */
+export declare const create: (middle?: (app: any) => void) => { app: any, server: any }
 
 export declare const event: {
     emit: (name: string, data: any) => void
@@ -59,14 +91,14 @@ export declare const jwt: {
 }
 
 export declare const logger: {
-    emerg: (message: string, playload: any) => void
-    alert: (message: string, playload: any) => void
-    crit: (message: string, playload: any) => void
-    error: (message: string, playload: any) => void
-    warn: (message: string, playload: any) => void
-    notice: (message: string, playload: any) => void
-    info: (message: string, playload: any) => void
-    debug: (message: string, playload: any) => void
+    emerg: (message: string, playload?: any) => void
+    alert: (message: string, playload?: any) => void
+    crit: (message: string, playload?: any) => void
+    error: (message: string, playload?: any) => void
+    warn: (message: string, playload?: any) => void
+    notice: (message: string, playload?: any) => void
+    info: (message: string, playload?: any) => void
+    debug: (message: string, playload?: any) => void
 }
 
 export declare const mongoose: {
@@ -110,13 +142,26 @@ export declare const slack: {
 }
 
 export declare const socket: {
-    emit: (event: string, data: any, option?: any) => Promise<any>
+    emit: (
+        event: string,
+        data: any,
+        option?: {
+            sid: string
+            uid: string
+            room: string
+        },
+    ) => Promise<any>
 }
 
 export declare const sheet: {
     doc: (id: string) => Promise<any>
 }
 
+/**
+ * ## Handle task with kafka under the hood
+ * Require **config.kafka_broker**  
+ * Auto group comsumer by `serivce instance`
+ */
 export declare const task: {
     on: (
             name: string,
@@ -130,15 +175,24 @@ export declare const task: {
                 }
             ) => void
         ) => void
-
+    
+    /**
+     * ### Add metadata and publish message to kafka
+     * @param name Topic name
+     * @param data Message payload
+     */
     emit: (name: string, data: any) => any
 }
 
 export declare const telegram: {
     send: (id: string, text: string) => Promise<any>
-    method: (method: string, param: any) => Promise<any>
+    method: (method: string, param?: any) => Promise<any>
 }
 
+/**
+ * ## Create a async context with hook
+ * and manage metadata with `asyncLocalStorage`
+ */
 export declare const tx: {
     get: (key: string) => any
     set: (key: string, value: any) => any
@@ -152,8 +206,8 @@ export declare const util: {
     sleep: (ms: number) => Promise<void>
     throttle: (wait?: number, trailling?: boolean = true) => any
     intersect: (target: any, destination: any) => any
-    readble: (dir: string) => => Promise<boolean>
-    getFiles: (dir: string) => => Promise<[string]>
+    readble: (dir: string) => Promise<boolean>
+    getFiles: (dir: string) => Promise<[string]>
     debounce: (fn: any, wait: number) => any
 }
 
