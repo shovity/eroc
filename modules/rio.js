@@ -53,7 +53,7 @@ rio.base = () => {
                     return converted
                 }
             }
-            
+
             if (typeof validate === 'object') {
                 const options = Object.values(validate)
 

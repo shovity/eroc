@@ -1,55 +1,163 @@
-import * as cacher from './modules/cacher'
-import * as config from './modules/config'
-import * as create from './modules/create'
-import * as gateway from './modules/gateway'
-import * as kafka from './modules/kafka'
-import * as mongoose from './modules/mongoose'
-import * as redis from './modules/redis'
-import * as rio from './modules/rio'
-import * as scanner from './modules/scanner'
-import * as sheet from './modules/sheet'
-import * as socket from './modules/socket'
-import * as telegram from './modules/telegram'
-import * as ui from './modules/ui'
-import * as vanguard from './modules/vanguard'
-import * as cardinal from './modules/cardinal'
-import * as counter from './modules/counter'
-import * as event from './modules/event'
-import * as jwt from './modules/jwt'
-import * as logger from './modules/logger'
-import * as query from './modules/query'
-import * as request from './modules/request'
-import * as Router from './modules/Router'
-import * as schedule from './modules/schedule'
-import * as slack from './modules/slack'
-import * as task from './modules/task'
-import * as tx from './modules/tx'
-import * as util from './modules/util'
+import * as config from "./modules/config"
 
-export declare const cacher: typeof cacher
-export declare const config: typeof config
-export declare const create: typeof create
-export declare const gateway: typeof gateway
-export declare const kafka: typeof kafka
-export declare const mongoose: typeof mongoose
-export declare const redis: typeof redis
-export declare const rio: typeof rio
-export declare const scanner: typeof scanner
-export declare const sheet: typeof sheet
-export declare const socket: typeof socket
-export declare const telegram: typeof telegram
-export declare const ui: typeof ui
-export declare const vanguard: typeof vanguard
-export declare const cardinal: typeof cardinal
-export declare const counter: typeof counter
-export declare const event: typeof event
-export declare const jwt: typeof jwt
-export declare const logger: typeof logger
-export declare const query: typeof query
-export declare const request: typeof request
-export declare const Router: typeof Router
-export declare const schedule: typeof schedule
-export declare const slack: typeof slack
-export declare const task: typeof task
-export declare const tx: typeof tx
-export declare const util: typeof util
+export declare const cacher: {
+    middle: (option: {
+        expire?: number = 173200
+        prefix?: string = ''
+    }) => (req?: any, res?: any, next?: any) => void
+}
+
+export declare const config: {
+    app_dir: string
+    port: number
+    env: string
+    secret: string
+    cors_origin: string
+    seek_static: string
+    seek_public: string
+    seek_views: string
+    seek_tasks: string
+    seek_routers: string
+    seek_events: string
+    logger_transporter: string
+    vanguard_detector: string
+    vanguard_supervisor: string
+    websocket_client: string
+    websocket_emitter: string
+    task_trip_max: number
+    task_loop_max: number
+
+    deferred: {
+        setup: Promise
+        config: Promise
+    },
+}
+
+export declare const counter: {
+    get: (key: string) => Promise<number>
+    set: (key: string, value: number) => Promise<void>
+}
+
+export declare const create: (middle: (app: any) => void) => { app: any, server: any }
+
+export declare const event: {
+    emit: (name: string, data: any) => void
+    on: (name: string, handle: (data: any) => void) => void
+}
+
+export declare const gateway: () => any
+
+export declare const jwt: {
+    sign: (data: any, option?: {
+        expiresIn?: string = '1000y'
+        secret?: string
+    }) => Promise<string>
+
+    verify: (token: string, option?: {
+        secret?: string
+    }) => Promise<any>
+}
+
+export declare const logger: {
+    emerg: (message: string, playload: any) => void
+    alert: (message: string, playload: any) => void
+    crit: (message: string, playload: any) => void
+    error: (message: string, playload: any) => void
+    warn: (message: string, playload: any) => void
+    notice: (message: string, playload: any) => void
+    info: (message: string, playload: any) => void
+    debug: (message: string, playload: any) => void
+}
+
+export declare const mongoose: {
+    Schema: (schema: any, option?: any) => any
+    model: (name: string, schema: any, option?: any) => any
+}
+
+export declare const query: () => any
+
+export declare const redis: {
+    client: any
+    cmd: (...arg: any) => Promise<any>
+    expire: (key: string, time: number) => Promise<any>
+    get: (key: string) => Promise<any>
+    set: (key: string, value: any, option?: any) => Promise<any>
+    hset: (key: string, name: string, value: any) => Promise<any>
+    hget: (key: string, name: string) => Promise<any>
+    hgetall: (key: string) => Promise<any>
+    hdel: (key: string, name: string) => Promise<any>
+    del: (key: string) => Promise<any>
+    sub: (channel: string, callback: (message: any, ...arg: any) => void) => Promise<any>
+    pub: (channel: string, message: any) => Promise<any>
+}
+
+export declare const request: {
+    get: (url: string, param?: any, option?: any) => Promise<any>
+    post: (url: string, body?: any, option?: any) => Promise<any>
+    put: (url: string, body?: any, option?: any) => Promise<any>
+    patch: (url: string, body?: any, option?: any) => Promise<any>
+    delete: (url: string, body?: any, option?: any) => Promise<any>
+}
+
+export declare const Router: (...params: any) => any
+
+export declare const schedule: {
+    add: (expr: string, handle: any, option?: any) => any
+}
+
+export declare const slack: {
+    send: (message: string, option?: any) => Promise<any>
+}
+
+export declare const socket: {
+    emit: (event: string, data: any, option?: any) => Promise<any>
+}
+
+export declare const sheet: {
+    doc: (id: string) => Promise<any>
+}
+
+export declare const task: {
+    on: (
+            name: string,
+            handle: (
+                data: any,
+                meta: {
+                    sender: string
+                    trips: string[]
+                    loop: number
+                    timestamp: number
+                }
+            ) => void
+        ) => void
+
+    emit: (name: string, data: any) => any
+}
+
+export declare const telegram: {
+    send: (id: string, text: string) => Promise<any>
+    method: (method: string, param: any) => Promise<any>
+}
+
+export declare const tx: {
+    get: (key: string) => any
+    set: (key: string, value: any) => any
+    init: () => (req, res, next) => void
+}
+
+export declare const ui: (template: string, command?: any) => any
+
+export declare const util: {
+    deferred: () => Promise<any>
+    sleep: (ms: number) => Promise<void>
+    throttle: (wait?: number, trailling?: boolean = true) => any
+    intersect: (target: any, destination: any) => any
+    readble: (dir: string) => => Promise<boolean>
+    getFiles: (dir: string) => => Promise<[string]>
+    debounce: (fn: any, wait: number) => any
+}
+
+export declare const vanguard: {
+    detect: () => (req?: any, res?: any, next?: any) => void
+    supervise: () => (req?: any, res?: any, next?: any) => void
+}

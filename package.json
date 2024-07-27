@@ -2,6 +2,7 @@
   "name": "eroc",
   "version": "2.7.15",
   "main": "index.js",
+  "types": "index.d.js",
   "author": "Shovity <shovity@gmail.com",
   "license": "MIT",
   "scripts": {

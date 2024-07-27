@@ -11,7 +11,7 @@ router.post('/', async (req, res, next) => {
 
     const fun = req.gp('fun', null, (value, key) => {
         value = Number(value)
-        
+
         check(value > 0, `${key} must greater than 0`)
 
         return value
@@ -29,7 +29,7 @@ router.post('/', async (req, res, next) => {
 
 setTimeout(() => {
     test.start('rio.gp require')
-    request.post('example/rio').catch((error) => {
+    request.post('example/rio').catch(() => {
         test.check('rio.gp require')
     })
 
@@ -39,12 +39,12 @@ setTimeout(() => {
     })
 
     test.start('rio.gp convert')
-    request.post('example/rio', { require: 1, string: 2 }).then(({ data }) => {
+    request.post('example/rio', { require: 1, string: 2 }).then(() => {
         test.check('rio.gp convert')
     })
 
     test.start('rio.gp regex fail')
-    request.post('example/rio', { require: 1, regex: 2 }).catch((error) => {
+    request.post('example/rio', { require: 1, regex: 2 }).catch(() => {
         test.check('rio.gp regex fail')
     })
 
@@ -54,7 +54,7 @@ setTimeout(() => {
     })
 
     test.start('rio.gp array option fail')
-    request.post('example/rio', { require: 1, option: 3 }).catch((error) => {
+    request.post('example/rio', { require: 1, option: 3 }).catch(() => {
         test.check('rio.gp array option fail')
     })
 
@@ -64,7 +64,7 @@ setTimeout(() => {
     })
 
     test.start('rio.gp object option fail')
-    request.post('example/rio', { require: 1, option2: 3 }).catch((error) => {
+    request.post('example/rio', { require: 1, option2: 3 }).catch(() => {
         test.check('rio.gp object option fail')
     })
 
@@ -74,7 +74,7 @@ setTimeout(() => {
     })
 
     test.start('rio.gp fun fail')
-    request.post('example/rio', { require: 1, fun: -1 }).catch((error) => {
+    request.post('example/rio', { require: 1, fun: -1 }).catch(() => {
         test.check('rio.gp fun fail')
     })
 
@@ -82,7 +82,6 @@ setTimeout(() => {
     request.post('example/rio', { require: 1, fun: '1' }).then(() => {
         test.check('rio.gp fun pass')
     })
-
 }, 500)
 
 module.exports = router
