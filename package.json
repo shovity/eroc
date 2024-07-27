@@ -1,6 +1,6 @@
 {
   "name": "eroc",
-  "version": "2.7.16",
+  "version": "2.7.17",
   "main": "index.js",
   "types": "index.d.js",
   "author": "Shovity <shovity@gmail.com",
