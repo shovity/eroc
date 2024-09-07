@@ -58,7 +58,7 @@ const vanguard = {
 
                     if (req.u.user.iat < tiat) {
                         const token = req.headers.token || req.cookies.token
-                        const { data } = await request.post('user/v1/users/token', { token })
+                        const { data } = await request.post(config.vanguard_refresh_token_url, { token })
                         req.u.user = await jwt.verify(data.token)
 
                         if (req.headers.token) {

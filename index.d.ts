@@ -1,3 +1,4 @@
+import { supervisor } from "eroc/modules/vanguard"
 import * as config from "./modules/config"
 
 /**
@@ -214,4 +215,11 @@ export declare const util: {
 export declare const vanguard: {
     detect: () => (req?: any, res?: any, next?: any) => void
     supervise: () => (req?: any, res?: any, next?: any) => void
+    
+    supervisor: {
+        tiat: () => (req, res, next) => void
+        internal: () => (req, res, next) => void
+        ui: () => (req, res, next) => void
+        login: () => (req, res, next) => void
+    }
 }
