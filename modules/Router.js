@@ -12,9 +12,9 @@ const Router = (...params) => {
         router[m] = (...params) => {
             for (let i = 0, l = params.length; i < l; i++) {
                 if (typeof params[i] === 'function' && params[i].constructor.name === 'AsyncFunction') {
-                    const asyncHanle = params[i]
+                    const asyncHandle = params[i]
                     params[i] = (req, res, next) => {
-                        return asyncHanle(req, res, next).catch(next)
+                        return asyncHandle(req, res, next).catch(next)
                     }
                 }
             }

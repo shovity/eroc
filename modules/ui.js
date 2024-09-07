@@ -32,9 +32,9 @@ const ui = (template, command = {}) => {
         }
 
         if (typeof handle === 'function' && handle.constructor.name === 'AsyncFunction') {
-            const asyncHanle = handle
+            const asyncHandle = handle
             handle = (req, res, next) => {
-                return asyncHanle(req, res, next).catch(next)
+                return asyncHandle(req, res, next).catch(next)
             }
         }
 
