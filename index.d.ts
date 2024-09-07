@@ -1,8 +1,5 @@
-import { supervisor } from "eroc/modules/vanguard"
-import * as config from "./modules/config"
-
 /**
- * ## Cache with redis
+ * ### Cache with redis
  * Require **config.redis_uri**
  */
 export declare const cacher: {
@@ -45,7 +42,7 @@ export declare const config: {
 }
 
 /**
- * ## Get auto increment value
+ * ### Get auto increment value
  * Store in **Mongodb**  
  * Require **config.mongodb_uri**
  */
@@ -159,7 +156,7 @@ export declare const sheet: {
 }
 
 /**
- * ## Handle task with kafka under the hood
+ * ### Handle task with kafka under the hood
  * Require **config.kafka_broker**  
  * Auto group comsumer by `serivce instance`
  */
@@ -191,7 +188,7 @@ export declare const telegram: {
 }
 
 /**
- * ## Create a async context with hook
+ * ### Create a async context with hook
  * and manage metadata with `asyncLocalStorage`
  */
 export declare const tx: {
