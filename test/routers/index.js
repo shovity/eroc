@@ -3,8 +3,8 @@ const { Router, logger } = require('eroc')
 const router = Router()
 
 router.use(async (req, res, next) => {
-    test.check('routers middleware')
-    next()
+  test.check('routers middleware')
+  next()
 })
 
 module.exports = router

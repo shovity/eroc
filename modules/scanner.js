@@ -6,58 +6,58 @@ const config = require('./config')
 const scanner = {}
 
 scanner.router = async (dir) => {
-    const router = Router()
-    const paths = []
+  const router = Router()
+  const paths = []
 
-    for (const path of await util.getFiles(dir)) {
-        if (!/^[a-z][a-z0-9-]+\.(j|t)s$/.test(path.split('/').pop())) {
-            continue
-        }
-
-        if (path.endsWith('/index.js') || path.endsWith('/index.ts')) {
-            paths.push(path.slice(0, -9))
-        } else {
-            paths.push(path.slice(0, -3))
-        }
+  for (const path of await util.getFiles(dir)) {
+    if (!/^[a-z][a-z0-9-]+\.(j|t)s$/.test(path.split('/').pop())) {
+      continue
     }
 
-    paths.sort()
+    if (path.endsWith('/index.js') || path.endsWith('/index.ts')) {
+      paths.push(path.slice(0, -9))
+    } else {
+      paths.push(path.slice(0, -3))
+    }
+  }
 
-    for (const path of paths) {
-        const module = require(path)
-        const handle = module.default || module
+  paths.sort()
 
-        const matchs = path.slice(resolve(dir).length).split('/')
+  for (const path of paths) {
+    const module = require(path)
+    const handle = module.default || module
 
-        if (typeof handle !== 'function') {
-            console.warn(`eroc - warn: router not a function - ${path}`)
-            continue
-        }
+    const matchs = path.slice(resolve(dir).length).split('/')
 
-        router.use(matchs.join('/'), handle)
+    if (typeof handle !== 'function') {
+      console.warn(`eroc - warn: router not a function - ${path}`)
+      continue
     }
 
-    return { router, paths }
+    router.use(matchs.join('/'), handle)
+  }
+
+  return { router, paths }
 }
 
 scanner.event = async () => {
-    const dir = config.seek_events
+  const dir = config.seek_events
 
-    if (await util.readble(dir)) {
-        for (const path of await util.getFiles(dir)) {
-            require(path)
-        }
+  if (await util.readble(dir)) {
+    for (const path of await util.getFiles(dir)) {
+      require(path)
     }
+  }
 }
 
 scanner.task = async () => {
-    const dir = config.seek_tasks
+  const dir = config.seek_tasks
 
-    if (await util.readble(dir)) {
-        for (const path of await util.getFiles(dir)) {
-            require(path)
-        }
+  if (await util.readble(dir)) {
+    for (const path of await util.getFiles(dir)) {
+      require(path)
     }
+  }
 }
 
 module.exports = scanner

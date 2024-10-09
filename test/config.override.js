@@ -1,3 +1,3 @@
 module.exports = (config) => {
-    config.override = 'overrided'
+  config.override = 'overrided'
 }

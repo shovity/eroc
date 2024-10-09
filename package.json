@@ -1,17 +1,23 @@
 {
   "name": "eroc",
   "version": "2.7.18",
+  "license": "MIT",
+  "author": "Shovity <shovity@gmail.com",
   "main": "index.js",
   "types": "index.d.js",
-  "author": "Shovity <shovity@gmail.com",
-  "license": "MIT",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --fix",
+    "prepare": "husky",
     "test": "cd test && sh start.sh"
   },
-  "engines": {
-    "node": ">=16.0.0"
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.json": "prettier --write",
+    "package.json": "npx -y sort-package-json"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
@@ -30,6 +36,11 @@
     "eslint": "^8.27.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
     "prettier": "^2.7.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

@@ -1,99 +1,102 @@
 const Router = require('./Router')
 
 const ui = (template, command = {}) => {
-    const router = Router()
+  const router = Router()
 
-    if (command.middle) {
-        router.use(command.middle)
+  if (command.middle) {
+    router.use(command.middle)
+  }
+
+  router.get('/', async (req, res, next) => {
+    const context = { layout: false }
+
+    if (command.context) {
+      Object.assign(context, await command.context(req, res, next))
     }
 
-    router.get('/', async (req, res, next) => {
-        const context = { layout: false }
+    if (!res.writableEnded) {
+      return res.render(template, context)
+    }
+  })
 
-        if (command.context) {
-            Object.assign(context, await command.context(req, res, next))
-        }
+  router.post('/', (req, res, next) => {
+    const _command = req.query._command
+    let handle = command[_command]
 
-        if (!res.writableEnded) {
-            return res.render(template, context)
-        }
-    })
+    if (!_command) {
+      return res.error('Missing command name')
+    }
 
-    router.post('/', (req, res, next) => {
-        const _command = req.query._command
-        let handle = command[_command]
+    if (typeof handle !== 'function') {
+      return res.error(`command "${_command}" not found`)
+    }
 
-        if (!_command) {
-            return res.error('Missing command name')
-        }
+    if (
+      typeof handle === 'function' &&
+      handle.constructor.name === 'AsyncFunction'
+    ) {
+      const asyncHandle = handle
+      handle = (req, res, next) => {
+        return asyncHandle(req, res, next).catch(next)
+      }
+    }
 
-        if (typeof handle !== 'function') {
-            return res.error(`command "${_command}" not found`)
-        }
+    handle(req, res, next)
+  })
 
-        if (typeof handle === 'function' && handle.constructor.name === 'AsyncFunction') {
-            const asyncHandle = handle
-            handle = (req, res, next) => {
-                return asyncHandle(req, res, next).catch(next)
-            }
-        }
-
-        handle(req, res, next)
-    })
-
-    return router
+  return router
 }
 
 ui.table = (model, inject) => {
-    return async (req, res, next) => {
-        const modes = req.gp('modes', ['data', 'total'])
+  return async (req, res, next) => {
+    const modes = req.gp('modes', ['data', 'total'])
 
-        const param = {
-            middleware: {
-                end: null,
-            },
-        }
-
-        param.limit = req.gp('limit', 12, Number)
-        param.offset = req.gp('offset', 0, Number)
-        param.draw = req.gp('draw', 0)
-
-        param.query = {}
-        param.project = {}
-        param.sort = { _id: -1 }
-
-        if (inject) {
-            await inject(req, param)
-        }
-
-        const response = {
-            data: [],
-
-            meta: {
-                draw: param.draw,
-            },
-        }
-
-        if (modes.includes('total')) {
-            response.meta.total = await model.countDocuments(param.query)
-        }
-
-        if (modes.includes('data')) {
-            response.data = await model
-                .find(param.query)
-                .sort(param.sort)
-                .skip(param.offset)
-                .limit(param.limit)
-                .select(param.project)
-                .lean()
-        }
-
-        if (param.middleware.end) {
-            await param.middleware.end(response)
-        }
-
-        return res.success(response.data, { meta: response.meta })
+    const param = {
+      middleware: {
+        end: null,
+      },
     }
+
+    param.limit = req.gp('limit', 12, Number)
+    param.offset = req.gp('offset', 0, Number)
+    param.draw = req.gp('draw', 0)
+
+    param.query = {}
+    param.project = {}
+    param.sort = { _id: -1 }
+
+    if (inject) {
+      await inject(req, param)
+    }
+
+    const response = {
+      data: [],
+
+      meta: {
+        draw: param.draw,
+      },
+    }
+
+    if (modes.includes('total')) {
+      response.meta.total = await model.countDocuments(param.query)
+    }
+
+    if (modes.includes('data')) {
+      response.data = await model
+        .find(param.query)
+        .sort(param.sort)
+        .skip(param.offset)
+        .limit(param.limit)
+        .select(param.project)
+        .lean()
+    }
+
+    if (param.middleware.end) {
+      await param.middleware.end(response)
+    }
+
+    return res.success(response.data, { meta: response.meta })
+  }
 }
 
 module.exports = ui

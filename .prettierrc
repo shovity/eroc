@@ -1,17 +1,6 @@
 {
   "singleQuote": true,
   "trailingComma": "all",
-  "tabWidth": 2,
   "semi": false,
-  "printWidth": 120,
-  "quoteProps": "consistent",
-
-  "overrides": [
-    {
-      "files": "*.js|*.html",
-      "options": {
-        "tabWidth": 4
-      }
-    }
-  ]
+  "quoteProps": "consistent"
 }

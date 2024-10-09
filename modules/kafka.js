@@ -3,54 +3,54 @@ const config = require('./config')
 const util = require('./util')
 
 const kafka = {
-    consumer: {},
-    producer: null,
-    ready: util.deferred(),
+  consumer: {},
+  producer: null,
+  ready: util.deferred(),
 }
 
 const logger = () => {
-    return ({ log }) => {
-        const { message } = log
+  return ({ log }) => {
+    const { message } = log
 
-        console.info(`kafka: ${message}`)
-    }
+    console.info(`kafka: ${message}`)
+  }
 }
 
 const boot = async () => {
-    await config.deferred.config
-    check(config.kafka_broker_uri, 'Missing config.kafka_broker_uri')
+  await config.deferred.config
+  check(config.kafka_broker_uri, 'Missing config.kafka_broker_uri')
 
-    kafka.client = new Kafka({
-        clientId: config.service,
-        brokers: config.kafka_broker_uri.split(','),
-        logLevel: logLevel.ERROR,
-        logCreator: logger,
+  kafka.client = new Kafka({
+    clientId: config.service,
+    brokers: config.kafka_broker_uri.split(','),
+    logLevel: logLevel.ERROR,
+    logCreator: logger,
 
-        retry: {
-            initialRetryTime: 200,
-            retries: 100,
-        },
-    })
+    retry: {
+      initialRetryTime: 200,
+      retries: 100,
+    },
+  })
 
-    kafka.producer = kafka.client.producer()
+  kafka.producer = kafka.client.producer()
 
-    await kafka.producer.connect()
+  await kafka.producer.connect()
 
-    kafka.ready.resolve()
-    console.info(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
+  kafka.ready.resolve()
+  console.info(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
 }
 
 kafka.pub = async (topic, message = null) => {
-    await kafka.ready
+  await kafka.ready
 
-    await kafka.producer.send({
-        topic,
-        messages: [
-            {
-                value: JSON.stringify(message),
-            },
-        ],
-    })
+  await kafka.producer.send({
+    topic,
+    messages: [
+      {
+        value: JSON.stringify(message),
+      },
+    ],
+  })
 }
 
 /**
@@ -60,57 +60,61 @@ kafka.pub = async (topic, message = null) => {
  * @param {function} handle
  */
 kafka.sub = async (topic, handle, option) => {
-    await kafka.ready
+  await kafka.ready
 
-    if (typeof option === 'function') {
-        const tmp = handle
-        handle = option
-        option = tmp
-    }
+  if (typeof option === 'function') {
+    const tmp = handle
+    handle = option
+    option = tmp
+  }
 
-    if (kafka.consumer[topic]) {
-        return console.error(`kafka: consumer already exists, topic=${topic}`)
-    }
+  if (kafka.consumer[topic]) {
+    return console.error(`kafka: consumer already exists, topic=${topic}`)
+  }
 
-    option = Object.assign(
-        {
-            group: `${config.service}:${config.env}:${topic}`,
-            fb: true,
-            retry: 1,
-        },
-        option,
-    )
+  option = Object.assign(
+    {
+      group: `${config.service}:${config.env}:${topic}`,
+      fb: true,
+      retry: 1,
+    },
+    option,
+  )
 
-    const consumer = kafka.client.consumer({
-        groupId: option.group,
-        sessionTimeout: 300000,
-        retry: {
-            retries: option.retry,
+  const consumer = kafka.client.consumer({
+    groupId: option.group,
+    sessionTimeout: 300000,
+    retry: {
+      retries: option.retry,
 
-            restartOnFailure: async (error) => {
-                console.error(`kafka: all retries failed, topic=${topic}`, error)
-                return false
-            },
-        },
-    })
+      restartOnFailure: async (error) => {
+        console.error(`kafka: all retries failed, topic=${topic}`, error)
+        return false
+      },
+    },
+  })
 
-    kafka.consumer[topic] = {
-        group: option.group,
-        consumer,
-    }
+  kafka.consumer[topic] = {
+    group: option.group,
+    consumer,
+  }
 
-    await consumer.connect()
+  await consumer.connect()
 
-    await consumer.subscribe({
+  await consumer.subscribe({
+    topic,
+    fromBeginning: option.fb,
+  })
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      return handle(JSON.parse(message.value.toString()), {
         topic,
-        fromBeginning: option.fb,
-    })
-
-    await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            return handle(JSON.parse(message.value.toString()), { topic, partition, message })
-        },
-    })
+        partition,
+        message,
+      })
+    },
+  })
 }
 
 boot().catch(console.error)
