@@ -183,7 +183,7 @@ export declare const task: {
 }
 
 export declare const telegram: {
-    send: (id: string, text: string) => Promise<any>
+    send: (id: string, text: string, param?: any) => Promise<any>
     method: (method: string, param?: any) => Promise<any>
 }
 

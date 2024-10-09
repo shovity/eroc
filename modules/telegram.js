@@ -5,7 +5,7 @@ const telegram = {
   base: 'https://api.telegram.org/bot',
 }
 
-telegram.send = async (id, text) => {
+telegram.send = async (id, text, param = {}) => {
   await config.deferred.config
   check(config.telegram_token, 'Missing config.telegram_token')
 
@@ -14,6 +14,7 @@ telegram.send = async (id, text) => {
     {
       chat_id: id,
       text,
+      ...param,
     },
   )
 }
