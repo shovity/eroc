@@ -197,7 +197,24 @@ export declare const tx: {
     init: () => (req, res, next) => void
 }
 
-export declare const ui: (template: string, command?: any) => any
+export declare const ui: {
+    (template: string, command?: any): any;
+    
+    table: (
+        model: string,
+        inject: {
+            middleware: {
+                end: any,
+            },
+            limit: number,
+            offset: number,
+            query: any,
+            project: any,
+            sort: any,
+        },
+    ) => any;
+}
+
 
 export declare const util: {
     deferred: () => Promise<any>

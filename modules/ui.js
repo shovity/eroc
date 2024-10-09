@@ -49,7 +49,9 @@ ui.table = (model, inject) => {
         const modes = req.gp('modes', ['data', 'total'])
 
         const param = {
-            middleware: {},
+            middleware: {
+                end: null,
+            },
         }
 
         param.limit = req.gp('limit', 12, Number)
