@@ -9,7 +9,7 @@ telegram.send = async (id, text, param = {}) => {
   await config.deferred.config
   check(config.telegram_token, 'Missing config.telegram_token')
 
-  return await request.post(
+  const response = await request.post(
     `${telegram.base}${config.telegram_token}/sendMessage`,
     {
       chat_id: id,
@@ -17,16 +17,24 @@ telegram.send = async (id, text, param = {}) => {
       ...param,
     },
   )
+
+  check(response.ok, response.description)
+
+  return response.result
 }
 
 telegram.method = async (method, param) => {
   await config.deferred.config
   check(config.telegram_token, 'Missing config.telegram_token')
 
-  return await request.post(
+  const response = await request.post(
     `${telegram.base}${config.telegram_token}/${method}`,
     param,
   )
+
+  check(response.ok, response.description)
+
+  return response.result
 }
 
 module.exports = telegram
