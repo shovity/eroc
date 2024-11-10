@@ -202,19 +202,21 @@ export declare const ui: {
     
     table: (
         model: string,
-        inject: {
-            middleware: {
-                end: any,
+        inject: (
+            req: any,
+            {
+                query: any,
+                sort: any,
+                project: any,
+                limit: number,
+                offset: number,
+                middleware: {
+                    end: any,
+                },
             },
-            limit: number,
-            offset: number,
-            query: any,
-            project: any,
-            sort: any,
-        },
+        ) => Promise<any>,
     ) => any;
 }
-
 
 export declare const util: {
     deferred: () => Promise<any>

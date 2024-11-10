@@ -100,9 +100,7 @@ rio.base = () => {
         response.meta.next = genNextUrl(data, req)
       }
 
-      res.status(option.code || 200)
-      res.json(response)
-
+      res.status(option.code || 200).json(response)
       res.u.emit('response_success', response)
     }
 
