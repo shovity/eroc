@@ -1,5 +1,8 @@
 const util = {}
 
+const FILTER_REGEX =
+  /tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã|đ\./gi
+
 util.refine = (place) => {
   if (!place) {
     return place
@@ -9,22 +12,13 @@ util.refine = (place) => {
     place = JSON.parse(place)
   }
 
-  if (place.address_components) {
-    place.address_components = place.address_components.filter((c) => {
-      if (c.types.includes('postal_code')) {
-        return
-      }
+  const formatted = place.formatted_address || place.description
 
-      return true
-    })
-
-    place.components = place.address_components
-      .map((c) => {
-        return c.long_name
-          .replace(/tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã/gi, '')
-          .trim()
-          .toLowerCase()
-      })
+  if (formatted) {
+    place.components = formatted
+      .split(',')
+      .map((c) => c.replace(FILTER_REGEX, '').trim().toLowerCase())
+      .filter(Boolean)
       .reverse()
   }
 
