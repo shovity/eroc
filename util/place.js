@@ -28,6 +28,13 @@ util.refine = (place) => {
       .reverse()
   }
 
+  if (place.geometry?.location) {
+    place.location = {
+      type: 'Point',
+      coordinates: [place.geometry.location.lng, place.geometry.location.lat],
+    }
+  }
+
   return place
 }
 
