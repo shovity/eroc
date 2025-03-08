@@ -19,8 +19,7 @@ slack.send = async (message, option = {}) => {
         color: option.color || '#00c0ef',
         title: option.title || '',
         text: message || '',
-        footer:
-          option.footer || `Slack API | ${config.service} | ${config.env}`,
+        footer: option.footer || `Slack API | ${config.service} | ${config.env}`,
       },
     ],
   }

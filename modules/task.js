@@ -13,10 +13,7 @@ task.emit = (name, data) => {
   const topic = `task.${name}`
 
   const meta = {
-    sender:
-      task.asyncLocalStorage.getStore()?.get('sender') ||
-      tx.get('txid') ||
-      uuid.v4(),
+    sender: task.asyncLocalStorage.getStore()?.get('sender') || tx.get('txid') || uuid.v4(),
     trips: task.asyncLocalStorage.getStore()?.get('trips') || [],
   }
 
@@ -24,10 +21,7 @@ task.emit = (name, data) => {
 }
 
 task.on = (name, handle) => {
-  check(
-    handle.constructor.name === 'AsyncFunction',
-    'Param handle must be a AsyncFunction',
-  )
+  check(handle.constructor.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
 
   const topic = `task.${name}`
 

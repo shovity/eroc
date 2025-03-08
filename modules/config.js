@@ -95,11 +95,7 @@ const main = async () => {
     const client = redis.createClient({ url: config.redis_uri })
     await client.connect()
 
-    const remoteConfigRaws = await client
-      .multi()
-      .hGet('eroc:service', '*')
-      .hGet('eroc:service', config.service)
-      .exec()
+    const remoteConfigRaws = await client.multi().hGet('eroc:service', '*').hGet('eroc:service', config.service).exec()
 
     for (const raw of remoteConfigRaws) {
       Object.assign(config, Function('require', 'config', raw)(require, config))
@@ -111,9 +107,7 @@ const main = async () => {
   config.deferred.config.resolve()
 
   process.nextTick(() => {
-    console.info(
-      `confg: 🍒 Load config done - service=${config.service}, env=${config.env}`,
-    )
+    console.info(`confg: 🍒 Load config done - service=${config.service}, env=${config.env}`)
   })
 }
 

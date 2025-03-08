@@ -21,10 +21,7 @@ mongoose.model = (name, schema, collection) => {
  * ! Model.insertMany and Model.bulkWrite not supported
  */
 const registEventStore = (name, schema) => {
-  if (
-    config.event_sourcing_model !== '*' &&
-    !config.event_sourcing_model?.split(',').includes(name)
-  ) {
+  if (config.event_sourcing_model !== '*' && !config.event_sourcing_model?.split(',').includes(name)) {
     return
   }
 
@@ -140,10 +137,7 @@ const registSyncSystem = (name, schema, collection, option) => {
           primary = schema.paths[`${path}._id`]
         }
 
-        check(
-          primary.instance === 'String',
-          `Missing string primary property ${name}.${path}._id`,
-        )
+        check(primary.instance === 'String', `Missing string primary property ${name}.${path}._id`)
       }
 
       subscribe.pool[topic].push(async (data) => {

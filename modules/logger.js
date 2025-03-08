@@ -64,10 +64,7 @@ const prepare = (data) => {
     data.message = data.message.message
   }
 
-  check(
-    typeof data.message === 'string',
-    'logger: message must be typeof string or instanceof Error',
-  )
+  check(typeof data.message === 'string', 'logger: message must be typeof string or instanceof Error')
 
   Object.assign(data, {
     service: config.service,
@@ -88,11 +85,7 @@ const prepare = (data) => {
         pick = 2
       }
 
-      data.path = paths[pick]
-        .split(`${config.app_dir}/`)
-        .slice(1)
-        .join('')
-        .split('.js:')[0]
+      data.path = paths[pick].split(`${config.app_dir}/`).slice(1).join('').split('.js:')[0]
     } catch (error) {
       console.error('logger: extract path failed:', Error())
     }
@@ -109,10 +102,7 @@ const transporter = async (data) => {
   await logger.ready
 
   for (const transport of logger.transports) {
-    if (
-      transport.level &&
-      logger.level[transport.level] < logger.level[data.level]
-    ) {
+    if (transport.level && logger.level[transport.level] < logger.level[data.level]) {
       continue
     }
 

@@ -8,10 +8,7 @@ event.emit = (name, data) => {
 }
 
 event.on = (name, handle) => {
-  check(
-    handle.constructor.name === 'AsyncFunction',
-    'Param handle must be a AsyncFunction',
-  )
+  check(handle.constructor.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
 
   const channel = `event.${name}`
 

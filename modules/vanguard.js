@@ -23,10 +23,7 @@ const vanguard = {
     },
 
     client: () => {
-      check(
-        config.redis_uri,
-        'Vangards detector "client" require confnig.redis_uri',
-      )
+      check(config.redis_uri, 'Vangards detector "client" require confnig.redis_uri')
       const redis = require('./redis')
 
       return async (req) => {
@@ -39,10 +36,7 @@ const vanguard = {
 
   supervisor: {
     tiat: () => {
-      check(
-        config.redis_uri,
-        'Vangards supervisor "tiat" require confnig.redis_uri',
-      )
+      check(config.redis_uri, 'Vangards supervisor "tiat" require confnig.redis_uri')
       const redis = require('./redis')
 
       return (req, res, next) => {
@@ -57,18 +51,14 @@ const vanguard = {
             res.u.cookie('token', '')
 
             return next({
-              message:
-                'User not found in vanguard code:vanguard_user_not_found',
+              message: 'User not found in vanguard code:vanguard_user_not_found',
               logout: true,
             })
           }
 
           if (req.u.user.iat < tiat) {
             const token = req.headers.token || req.cookies.token
-            const { data } = await request.post(
-              config.vanguard_refresh_token_url,
-              { token },
-            )
+            const { data } = await request.post(config.vanguard_refresh_token_url, { token })
             req.u.user = await jwt.verify(data.token)
 
             if (req.headers.token) {
@@ -79,10 +69,7 @@ const vanguard = {
             } else {
               res.u.cookie('token', data.token)
               req.cookies.token = data.token
-              req.headers.cookie = req.headers.cookie.replace(
-                `token=${token}`,
-                `token=${data.token}`,
-              )
+              req.headers.cookie = req.headers.cookie.replace(`token=${token}`, `token=${data.token}`)
             }
           }
 
@@ -111,10 +98,7 @@ const vanguard = {
       const router = Router()
 
       router.use('/:service([a-z-]+)/in/*', async (req, res, next) => {
-        check(
-          req.headers.client === config.client,
-          'Internal api access denied',
-        )
+        check(req.headers.client === config.client, 'Internal api access denied')
         next()
       })
 
@@ -122,10 +106,7 @@ const vanguard = {
     },
 
     ui: () => {
-      check(
-        config.redis_uri,
-        'Vangards supervisor "ui" require confnig.redis_uri',
-      )
+      check(config.redis_uri, 'Vangards supervisor "ui" require confnig.redis_uri')
       const redis = require('./redis')
       const router = Router()
 
@@ -168,9 +149,7 @@ vanguard.detect = () => {
       continue
     }
 
-    const detector = vanguard.detector[name]
-      ? vanguard.detector[name]()
-      : undefined
+    const detector = vanguard.detector[name] ? vanguard.detector[name]() : undefined
     check(detector, `vanguard: detector not found: "${name}"`)
 
     detectors.push(detector)
@@ -211,9 +190,7 @@ vanguard.supervise = () => {
       continue
     }
 
-    const supervisor = vanguard.supervisor[name]
-      ? vanguard.supervisor[name]()
-      : undefined
+    const supervisor = vanguard.supervisor[name] ? vanguard.supervisor[name]() : undefined
     check(supervisor, `vanguard: supervisor not found: "${name}"`)
 
     router.use(supervisor)

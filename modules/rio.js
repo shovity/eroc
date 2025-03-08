@@ -53,12 +53,7 @@ rio.base = () => {
 
   return (req, res, next) => {
     req.gp = (key, defaultValue, validate) => {
-      let value = [
-        req.body[key],
-        req.query[key],
-        req.params[key],
-        defaultValue,
-      ].find((v) => v !== undefined)
+      let value = [req.body[key], req.query[key], req.params[key], defaultValue].find((v) => v !== undefined)
       check(value !== undefined, `Missing param: ${key} code:missing_param`)
 
       if (value === defaultValue) {
@@ -66,18 +61,12 @@ rio.base = () => {
       }
 
       if (validate instanceof RegExp) {
-        check(
-          validate.test(value),
-          `Invalid param ${key}, accept: ${validate.toString()}`,
-        )
+        check(validate.test(value), `Invalid param ${key}, accept: ${validate.toString()}`)
         return value
       }
 
       if (Array.isArray(validate)) {
-        check(
-          validate.includes(value),
-          `Invalid param ${key}, accept: ${validate.join(', ')}`,
-        )
+        check(validate.includes(value), `Invalid param ${key}, accept: ${validate.join(', ')}`)
         return value
       }
 
@@ -93,10 +82,7 @@ rio.base = () => {
         const options = Object.values(validate)
 
         if (options.length) {
-          check(
-            options.includes(value),
-            `Invalid param ${key}, accept: ${options.join(', ')}`,
-          )
+          check(options.includes(value), `Invalid param ${key}, accept: ${options.join(', ')}`)
           return value
         }
       }

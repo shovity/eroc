@@ -1,9 +1,7 @@
 const phone = {}
 
 phone.refine = (pn = '') => {
-  pn = pn
-    .replace(/[^0-9+]/g, '')
-    .replace(/\+/g, (match, offset) => (offset === 0 ? match : ''))
+  pn = pn.replace(/[^0-9+]/g, '').replace(/\+/g, (match, offset) => (offset === 0 ? match : ''))
 
   if (pn.startsWith('84')) {
     return `+84${pn.slice(2).replace(/^0+/, '')}`

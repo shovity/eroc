@@ -20,9 +20,7 @@ cacher.middle = (option) => {
   return async (req, res, next) => {
     const md5sum = crypto.createHash('md5')
     const [base, query] = req.originalUrl.split('?')
-    const key = `cacher:middle:${option.prefix}:${base}:${
-      query ? md5sum.update(query).digest('base64') : ''
-    }`
+    const key = `cacher:middle:${option.prefix}:${base}:${query ? md5sum.update(query).digest('base64') : ''}`
 
     if (req.headers.cacher !== 'disable') {
       const data = await redis.get(key)

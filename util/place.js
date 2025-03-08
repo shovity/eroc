@@ -1,7 +1,6 @@
 const util = {}
 
-const FILTER_REGEX =
-  /tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã|đ\./gi
+const FILTER_REGEX = /tỉnh|thành phố|tp\.|quận|huyện|phường|xã|tx\.|thị xã|đ\./gi
 
 util.refine = (place) => {
   if (!place) {

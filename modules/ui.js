@@ -31,10 +31,7 @@ const ui = (template, command = {}) => {
       return res.error(`command "${_command}" not found`)
     }
 
-    if (
-      typeof handle === 'function' &&
-      handle.constructor.name === 'AsyncFunction'
-    ) {
+    if (typeof handle === 'function' && handle.constructor.name === 'AsyncFunction') {
       const asyncHandle = handle
       handle = (req, res, next) => {
         return asyncHandle(req, res, next).catch(next)

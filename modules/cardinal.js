@@ -130,19 +130,13 @@ cardinal.onError = (error, req, res, next) => {
   }
 
   if (res) {
-    res
-      .status(res.statusCode === 200 ? 400 : res.statusCode)
-      .json({ error: response })
+    res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ error: response })
   }
 
   if (!cardinal.silent(response)) {
-    logger.error(
-      response.message,
-      typeof error === 'object' ? Object.assign({}, error) : {},
-      {
-        stack: error.stack,
-      },
-    )
+    logger.error(response.message, typeof error === 'object' ? Object.assign({}, error) : {}, {
+      stack: error.stack,
+    })
 
     res && res.u.emit('response_error', { error: response })
   }
@@ -191,18 +185,14 @@ cardinal.seek = async () => {
       const prefix = config.router_prefix || config.service
 
       cardinal.app.use(path.join('/', prefix), router)
-      console.info(
-        `cardinal: Load ${paths.length} routers done - router_prefix=${prefix}`,
-      )
+      console.info(`cardinal: Load ${paths.length} routers done - router_prefix=${prefix}`)
     } catch (error) {
       console.error('cardinal: ERROR - seek router false', error)
     }
   }
 
   if (await util.readble(config.seek_public)) {
-    cardinal.app.use(
-      express.static(path.join(config.app_dir, config.seek_public)),
-    )
+    cardinal.app.use(express.static(path.join(config.app_dir, config.seek_public)))
   }
 
   if (await util.readble(config.seek_static)) {

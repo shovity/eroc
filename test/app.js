@@ -10,11 +10,7 @@ const prepare = async () => {
   await client.connect()
 
   await client.hSet('eroc:service', '*', 'return { remote_config_all: true }')
-  await client.hSet(
-    'eroc:service',
-    'example',
-    'return { remote_config_example: true }',
-  )
+  await client.hSet('eroc:service', 'example', 'return { remote_config_example: true }')
 
   client.quit()
 }

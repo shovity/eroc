@@ -2,5 +2,7 @@
   "singleQuote": true,
   "trailingComma": "all",
   "semi": false,
-  "quoteProps": "consistent"
+  "quoteProps": "consistent",
+  "printWidth": 120,
+  "tabWidth": 2
 }

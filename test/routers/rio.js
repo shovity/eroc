@@ -88,21 +88,14 @@ setTimeout(() => {
   })
 
   test.start('rio.gp date convert')
-  request
-    .post('example/rio', { require: 1, date: '1741448292175' })
-    .then(({ data }) => {
-      test.check(
-        'rio.gp date convert',
-        new Date(data.date).getTime() === 1741448292175,
-      )
-    })
+  request.post('example/rio', { require: 1, date: '1741448292175' }).then(({ data }) => {
+    test.check('rio.gp date convert', new Date(data.date).getTime() === 1741448292175)
+  })
 
   test.start('rio.gp comma convert')
-  request
-    .post('example/rio', { require: 1, commas: '1,2,3' })
-    .then(({ data }) => {
-      test.check('rio.gp comma convert', data.commas.length === 3)
-    })
+  request.post('example/rio', { require: 1, commas: '1,2,3' }).then(({ data }) => {
+    test.check('rio.gp comma convert', data.commas.length === 3)
+  })
 }, 500)
 
 module.exports = router
