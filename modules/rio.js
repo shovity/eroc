@@ -31,12 +31,16 @@ const validator = {
     return String(value)
   },
 
-  number: (value) => {
-    return Number(value)
+  number: (value, key) => {
+    value = Number(value)
+    check(!isNaN(value), `Invalid number: ${key}`)
+    return value
   },
 
-  date: (value) => {
-    return new Date(+value || value)
+  date: (value, key) => {
+    value = new Date(+value || value)
+    check(!isNaN(value.getTime()), `Invalid date: ${key}`)
+    return value
   },
 
   comma: (value) => {
@@ -91,7 +95,7 @@ rio.base = () => {
         const handle = validator[validate]
         check(handle, `Rio validator not found: ${validate}`)
 
-        return handle(value)
+        return handle(value, key)
       }
 
       return value
