@@ -8,6 +8,8 @@ router.post('/', async (req, res, next) => {
   const regex = req.gp('regex', null, /[ab]/)
   const option = req.gp('option', null, [1, 2])
   const option2 = req.gp('option2', null, { a: 1, b: 2 })
+  const date = req.gp('date', null, 'date')
+  const commas = req.gp('commas', null, 'comma')
 
   const fun = req.gp('fun', null, (value, key) => {
     value = Number(value)
@@ -24,6 +26,8 @@ router.post('/', async (req, res, next) => {
     option,
     option2,
     fun,
+    date,
+    commas,
   })
 })
 
@@ -82,6 +86,23 @@ setTimeout(() => {
   request.post('example/rio', { require: 1, fun: '1' }).then(() => {
     test.check('rio.gp fun pass')
   })
+
+  test.start('rio.gp date convert')
+  request
+    .post('example/rio', { require: 1, date: '1741448292175' })
+    .then(({ data }) => {
+      test.check(
+        'rio.gp date convert',
+        new Date(data.date).getTime() === 1741448292175,
+      )
+    })
+
+  test.start('rio.gp comma convert')
+  request
+    .post('example/rio', { require: 1, commas: '1,2,3' })
+    .then(({ data }) => {
+      test.check('rio.gp comma convert', data.commas.length === 3)
+    })
 }, 500)
 
 module.exports = router

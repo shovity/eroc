@@ -42,6 +42,9 @@ Object.assign(config, {
   deferred: {},
 
   schedule_look: true,
+
+  // Addition rio validators
+  rio_validator: {},
 })
 
 config.deferred.config = util.deferred()

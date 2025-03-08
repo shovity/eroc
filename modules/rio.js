@@ -26,7 +26,31 @@ const genNextUrl = (data, req) => {
     .join('&')}`
 }
 
+const validator = {
+  string: (value) => {
+    return String(value)
+  },
+
+  number: (value) => {
+    return Number(value)
+  },
+
+  date: (value) => {
+    return new Date(+value || value)
+  },
+
+  comma: (value) => {
+    return value
+      .toString()
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean)
+  },
+}
+
 rio.base = () => {
+  Object.assign(validator, config.rio_validator)
+
   return (req, res, next) => {
     req.gp = (key, defaultValue, validate) => {
       let value = [
@@ -75,6 +99,13 @@ rio.base = () => {
           )
           return value
         }
+      }
+
+      if (typeof validate === 'string') {
+        const handle = validator[validate]
+        check(handle, `Rio validator not found: ${validate}`)
+
+        return handle(value)
       }
 
       return value
