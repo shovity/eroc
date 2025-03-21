@@ -1,4 +1,4 @@
-const { Kafka, logLevel } = require('kafkajs')
+const { Kafka, Partitioners, logLevel } = require('kafkajs')
 const config = require('./config')
 const util = require('./util')
 
@@ -32,7 +32,7 @@ const boot = async () => {
     },
   })
 
-  kafka.producer = kafka.client.producer()
+  kafka.producer = kafka.client.producer({ createPartitioner: Partitioners.DefaultPartitioner })
 
   await kafka.producer.connect()
 
