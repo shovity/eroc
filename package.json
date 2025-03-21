@@ -20,14 +20,14 @@
     "package.json": "npx -y sort-package-json"
   },
   "dependencies": {
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "cron": "^3.0.0",
-    "express": "^4.18.2",
+    "express": "^4.21.2",
     "express-handlebars": "^6.0.6",
     "express-list-endpoints": "^6.0.0",
-    "jose": "^4.14.6",
+    "jose": "^5.9.6",
     "kafkajs": "^2.2.4",
-    "mongoose": "^8.1.1",
+    "mongoose": "^8.12.1",
     "node-fetch": "^2.6.7",
     "redis": "^4.6.10",
     "uuid": "^9.0.1"
@@ -37,7 +37,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
+    "lint-staged": "^15.5.0",
     "prettier": "^2.7.1"
   },
   "engines": {
