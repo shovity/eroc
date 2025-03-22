@@ -239,3 +239,8 @@ export declare const vanguard: {
         login: () => (req, res, next) => void
     }
 }
+
+export declare const lock: {
+    aquire: (keys: any, ttl: number) => Promise<boolean>
+    using: (keys: any, handle: () => Promise<any>) => Promise<any>
+}
