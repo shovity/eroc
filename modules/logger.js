@@ -79,13 +79,15 @@ const prepare = (data) => {
   if (!data.path) {
     try {
       const paths = (data.stack || Error().stack).split('at ')
-      let pick = 3
 
-      if (paths[1].startsWith('global.check')) {
-        pick = 2
+      for (const path of paths) {
+        if (!path.includes(config.app_dir) || path.includes('node_modules')) {
+          continue
+        }
+
+        data.path = path.split(`${config.app_dir}/`).slice(1).join('').split('.')[0]
+        break
       }
-
-      data.path = paths[pick].split(`${config.app_dir}/`).slice(1).join('').split('.js:')[0]
     } catch (error) {
       console.error('logger: extract path failed:', Error())
     }
