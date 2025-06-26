@@ -4,12 +4,12 @@ const RELEASE_CHANNEL = 'lock:release'
 const map = new Map()
 const lock = {}
 
-lock.aquire = async (keys, ttl) => {
+lock.acquire = async (keys, ttl) => {
   if (!Array.isArray(keys)) {
     keys = [keys]
   }
 
-  const rkey = `lock:aquire:${keys.join(':')}`
+  const rkey = `lock:acquire:${keys.join(':')}`
   return await redis.set(rkey, 1, { NX: true, PX: ttl })
 }
 

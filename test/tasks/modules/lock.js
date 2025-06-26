@@ -1,26 +1,26 @@
 const { lock } = require('eroc')
 
 const main = async () => {
-  // Aquire success
+  // Acquire success
 
-  test.start('lock aquire success')
-  const aquireSuccess = await lock.aquire('test', 1000)
+  test.start('lock acquire success')
+  const acquireSuccess = await lock.acquire('test', 1000)
 
-  if (aquireSuccess) {
-    test.check('lock aquire success')
+  if (acquireSuccess) {
+    test.check('lock acquire success')
   }
 
-  // Aquire fail
+  // Acquire fail
 
-  test.start('lock aquire fail')
-  const aquireFail = await lock.aquire(['test'], 1000)
+  test.start('lock acquire fail')
+  const acquireFail = await lock.acquire(['test'], 1000)
 
-  if (aquireFail) {
-    test.check('lock aquire fail', false)
+  if (acquireFail) {
+    test.check('lock acquire fail', false)
   }
 
   setTimeout(() => {
-    test.check('lock aquire fail')
+    test.check('lock acquire fail')
   }, 1010)
 
   // Using

@@ -1,4 +1,4 @@
-const { Kafka, Partitioners, logLevel } = require('kafkajs')
+const { Kafka, logLevel, Partitioners } = require('kafkajs')
 const config = require('./config')
 const util = require('./util')
 
@@ -33,7 +33,6 @@ const boot = async () => {
   })
 
   kafka.producer = kafka.client.producer({ createPartitioner: Partitioners.DefaultPartitioner })
-
   await kafka.producer.connect()
 
   kafka.ready.resolve()
@@ -59,7 +58,7 @@ kafka.pub = async (topic, message = null) => {
  * @param {object} [option] { group, fb: from beginning, retry: number of retries }
  * @param {function} handle
  */
-kafka.sub = async (topic, handle, option) => {
+kafka.sub = async (topic, handle, option, tries = 1) => {
   await kafka.ready
 
   if (typeof option === 'function') {
@@ -99,22 +98,34 @@ kafka.sub = async (topic, handle, option) => {
     consumer,
   }
 
-  await consumer.connect()
+  try {
+    await consumer.connect()
 
-  await consumer.subscribe({
-    topic,
-    fromBeginning: option.fb,
-  })
+    await consumer.subscribe({
+      topic,
+      fromBeginning: option.fb,
+    })
 
-  await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      return handle(JSON.parse(message.value.toString()), {
-        topic,
-        partition,
-        message,
-      })
-    },
-  })
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        return handle(JSON.parse(message.value.toString()), {
+          topic,
+          partition,
+          message,
+        })
+      },
+    })
+  } catch (error) {
+    delete kafka.consumer[topic]
+
+    if (tries > 5) {
+      throw error
+    }
+
+    console.error(`kafka: consumer failed, topic=${topic}, tries=${tries}`)
+    await new Promise((resolve) => setTimeout(resolve, 100 * tries))
+    return await kafka.sub(topic, handle, option, tries + 1)
+  }
 }
 
 boot().catch(console.error)

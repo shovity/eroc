@@ -241,6 +241,6 @@ export declare const vanguard: {
 }
 
 export declare const lock: {
-    aquire: (keys: any, ttl: number) => Promise<boolean>
+    acquire: (keys: any, ttl: number) => Promise<boolean>
     using: (keys: any, handle: () => Promise<any>) => Promise<any>
 }
