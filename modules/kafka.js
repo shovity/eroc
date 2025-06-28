@@ -1,6 +1,7 @@
-const { Kafka, logLevel, Partitioners } = require('kafkajs')
+const { Kafka, logLevel, Partitioners, CompressionTypes } = require('kafkajs')
 const config = require('./config')
 const util = require('./util')
+const cardinal = require('./cardinal')
 
 const kafka = {
   consumer: {},
@@ -30,22 +31,35 @@ const boot = async () => {
       initialRetryTime: 200,
       retries: 100,
     },
+    ...config.kafka_broker_config,
   })
 
-  kafka.producer = kafka.client.producer({ createPartitioner: Partitioners.DefaultPartitioner })
+  kafka.producer = kafka.client.producer({
+    createPartitioner: Partitioners.DefaultPartitioner,
+    ...config.kafka_producer_config,
+  })
+
   await kafka.producer.connect()
 
+  cardinal.teardown(async () => {
+    await Promise.all(Object.values(kafka.consumer).map((c) => c.consumer.disconnect()))
+    await kafka.producer.disconnect()
+    console.info(`kafka: 🚕 Disconnected`)
+  })
+
   kafka.ready.resolve()
-  console.info(`kafka: 🚕 Connecting - ${config.kafka_broker_uri}`)
+  console.info(`kafka: 🚕 Connected - ${config.kafka_broker_uri}`)
 }
 
-kafka.pub = async (topic, message = null) => {
+kafka.pub = async (topic, message, key) => {
   await kafka.ready
 
   await kafka.producer.send({
     topic,
+    compression: CompressionTypes.GZIP,
     messages: [
       {
+        key: JSON.stringify(key),
         value: JSON.stringify(message),
       },
     ],
@@ -91,6 +105,7 @@ kafka.sub = async (topic, handle, option, tries = 1) => {
         return false
       },
     },
+    ...config.kafka_consumer_config,
   })
 
   kafka.consumer[topic] = {

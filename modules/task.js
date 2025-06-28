@@ -9,7 +9,7 @@ const task = {
   asyncLocalStorage: new AsyncLocalStorage(),
 }
 
-task.emit = (name, data) => {
+task.emit = (name, data, key) => {
   const topic = `task.${name}`
 
   const meta = {
@@ -17,7 +17,7 @@ task.emit = (name, data) => {
     trips: task.asyncLocalStorage.getStore()?.get('trips') || [],
   }
 
-  kafka.pub(topic, { data, meta })
+  kafka.pub(topic, { data, meta }, key)
 }
 
 task.on = (name, handle) => {
@@ -35,7 +35,7 @@ task.on = (name, handle) => {
    * Disable comsumer group and from beginning in local
    * then it's like event
    */
-  if (process.env.NODE_ENV === 'development') {
+  if (config.env === 'local') {
     option.fb = false
     option.group += Date.now()
   }

@@ -12,6 +12,13 @@ const tx = require('./tx')
 const cardinal = {
   app: null,
   server: null,
+  teardownHandles: [],
+  isShuttingDown: false,
+}
+
+cardinal.teardown = (handle) => {
+  check(handle?.constructor?.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
+  cardinal.teardownHandles.push(handle)
 }
 
 cardinal.create = (middle) => {
@@ -94,6 +101,12 @@ cardinal.setup = async (middle) => {
     cardinal.server.listen(config.port, () => {
       console.info(`cardinal: 🍔 HTTP server ready! - port=${config.port}`)
     })
+
+    cardinal.teardown(async () => {
+      cardinal.server.close(() => {
+        console.info('cardinal: 🍔 HTTP server closed')
+      })
+    })
   }
 
   config.deferred.setup.resolve()
@@ -160,6 +173,11 @@ cardinal.boot = async () => {
           authSource: 'admin',
         })
         .then(() => {
+          cardinal.teardown(async () => {
+            await mongoose.disconnect()
+            console.info('mongo: 🍱 Disconnected')
+          })
+
           console.info(`mongo: 🍱 Connected - ${config.mongo_uri}`)
         })
         .catch((error) => {
@@ -171,11 +189,39 @@ cardinal.boot = async () => {
 
     connect()
   }
+
+  if (config.enable_teardown ?? process.env.NODE_ENV === 'production') {
+    for (const type of ['uncaughtException']) {
+      process.on(type, async () => {
+        try {
+          await cardinal.shutdown()
+        } catch (_) {
+          process.exit(1)
+        }
+      })
+    }
+
+    for (const type of ['SIGTERM', 'SIGINT', 'SIGUSR2']) {
+      process.on(type, async () => {
+        try {
+          await cardinal.shutdown()
+        } finally {
+          process.exit(0)
+        }
+      })
+    }
+  }
 }
 
 cardinal.shutdown = async () => {
-  const mongoose = require('mongoose')
-  await mongoose.disconnect()
+  if (cardinal.isShuttingDown) {
+    await new Promise((resolve) => setTimeout(resolve, 10000))
+    process.exit(0)
+  }
+
+  cardinal.isShuttingDown = true
+  await Promise.all(cardinal.teardownHandles.map((teardown) => teardown()))
+  process.exit(0)
 }
 
 cardinal.seek = async () => {
@@ -221,15 +267,9 @@ cardinal.monitoring = async () => {
     const event = require('./event')
 
     event.on(`${config.service}.cardinal`, async (message) => {
-      if (message.action === 'reboot') {
-        await cardinal.shutdown()
-        await cardinal.boot(cardinal.app)
-        console.info('cardinal: Reboot done!')
-      }
-
       if (message.action === 'restart') {
         console.info('cardinal: Force restart from cardinal')
-        process.exit(1)
+        await cardinal.shutdown()
       }
     })
   }
