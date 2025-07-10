@@ -19,7 +19,11 @@ const logger = () => {
 
 const boot = async () => {
   await config.deferred.config
-  check(config.kafka_broker_uri, 'Missing config.kafka_broker_uri')
+
+  check(
+    config.kafka_broker_uri || config.kafka_broker_config,
+    'Missing config.kafka_broker_uri and config.kafka_broker_config',
+  )
 
   kafka.client = new Kafka({
     clientId: config.service,
