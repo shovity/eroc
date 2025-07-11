@@ -54,20 +54,20 @@ util.sleep = async (ms) => {
   })
 }
 
-util.throttle = (wait = 200, trailling = true) => {
+util.throttle = (wait = 200, trailing = true) => {
   const instance = {
     lock: false,
     handle: null,
   }
 
-  instance.execute = (handle, ...args) => {
+  instance.execute = (handle) => {
     instance.handle = handle
 
     if (instance.lock) {
       return
     }
 
-    instance.handle(...args)
+    instance.handle()
 
     instance.lock = true
     instance.handle = null
@@ -75,8 +75,8 @@ util.throttle = (wait = 200, trailling = true) => {
     setTimeout(() => {
       instance.lock = false
 
-      if (trailling && instance.handle) {
-        instance.execute(instance.handle, ...args)
+      if (trailing && instance.handle) {
+        instance.execute(instance.handle)
       }
     }, wait)
   }

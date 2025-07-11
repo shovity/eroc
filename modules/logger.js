@@ -39,8 +39,21 @@ const logger = {
     task: () => {
       const task = require('./task')
 
+      const pools = []
+      const caller = util.throttle(100)
+
       return (data) => {
-        process.nextTick(task.emit, 'logger.create', data)
+        pools.push(data)
+
+        if (pools.length > 200) {
+          task.emit('logger.create', [...pools])
+          pools.length = 0
+        } else {
+          caller.execute(() => {
+            task.emit('logger.create', [...pools])
+            pools.length = 0
+          })
+        }
       }
     },
 

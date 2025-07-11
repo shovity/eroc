@@ -9,7 +9,7 @@ const task = {
   asyncLocalStorage: new AsyncLocalStorage(),
 }
 
-task.emit = (name, data, key) => {
+task.emit = async (name, data, key) => {
   const topic = `task.${name}`
 
   const meta = {
@@ -17,10 +17,10 @@ task.emit = (name, data, key) => {
     trips: task.asyncLocalStorage.getStore()?.get('trips') || [],
   }
 
-  kafka.pub(topic, { data, meta }, key)
+  return await kafka.pub(topic, { data, meta }, key)
 }
 
-task.on = (name, handle) => {
+task.on = async (name, handle) => {
   check(handle.constructor.name === 'AsyncFunction', 'Param handle must be a AsyncFunction')
 
   const topic = `task.${name}`
@@ -70,7 +70,7 @@ task.on = (name, handle) => {
     })
   }
 
-  kafka.sub(topic, option, wrap)
+  return await kafka.sub(topic, option, wrap)
 }
 
 module.exports = task
