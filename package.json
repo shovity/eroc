@@ -26,7 +26,7 @@
     "express-handlebars": "^6.0.6",
     "express-list-endpoints": "^6.0.0",
     "jose": "^5.9.6",
-    "kafkajs": "^2.2.4",
+    "kafkajs": "^1.16.0",
     "mongoose": "^8.12.1",
     "node-fetch": "^2.6.7",
     "redis": "^4.6.10",
