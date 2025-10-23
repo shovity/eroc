@@ -46,7 +46,13 @@ const boot = async () => {
   await kafka.producer.connect()
 
   cardinal.teardown(async () => {
-    await Promise.all(Object.values(kafka.consumer).map((c) => c.consumer.disconnect()))
+    await Promise.all(
+      Object.values(kafka.consumer).map(async (c) => {
+        await c.consumer.stop()
+        await c.consumer.disconnect()
+      }),
+    )
+
     await kafka.producer.disconnect()
     console.info(`kafka: 🚕 Disconnected`)
   })
@@ -126,12 +132,20 @@ kafka.sub = async (topic, handle, option, tries = 1) => {
     })
 
     await consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        return handle(JSON.parse(message.value.toString()), {
-          topic,
-          partition,
-          message,
-        })
+      eachBatch: async ({ batch, resolveOffset, heartbeat, commitOffsetsIfNecessary }) => {
+        const hb = setInterval(() => heartbeat(), 5000)
+
+        try {
+          for (const message of batch.messages) {
+            await handle(JSON.parse(message.value.toString()), { topic, message })
+            resolveOffset(message.offset)
+            await commitOffsetsIfNecessary()
+          }
+        } finally {
+          clearInterval(hb)
+        }
+
+        await heartbeat()
       },
     })
   } catch (error) {

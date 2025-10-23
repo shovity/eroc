@@ -13,7 +13,6 @@ redis.client.on('connect', () => {
   console.info(`redis: 🍉 Connected - ${config.redis_uri}`)
 
   cardinal.teardown(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 3000))
     await redis.client.disconnect()
     console.info('redis: 🍉 Disconnected')
   })

@@ -45,6 +45,8 @@ Object.assign(config, {
 
   // Addition rio validators
   rio_validator: {},
+
+  enable_teardown: process.env.NODE_ENV === 'production',
 })
 
 config.deferred.config = util.deferred()

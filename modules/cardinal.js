@@ -190,7 +190,7 @@ cardinal.boot = async () => {
     connect()
   }
 
-  if (config.enable_teardown ?? process.env.NODE_ENV === 'production') {
+  if (config.enable_teardown) {
     for (const type of ['uncaughtException']) {
       process.on(type, async () => {
         try {
@@ -219,8 +219,12 @@ cardinal.shutdown = async () => {
     process.exit(0)
   }
 
+  const start = Date.now()
+
   cardinal.isShuttingDown = true
   await Promise.all(cardinal.teardownHandles.map((teardown) => teardown()))
+
+  console.info(`cardinal: Shutdown completed in ${Date.now() - start}ms`)
   process.exit(0)
 }
 
