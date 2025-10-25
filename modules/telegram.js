@@ -9,11 +9,14 @@ telegram.send = async (id, text, param = {}) => {
   await config.deferred.config
   check(config.telegram_token, 'Missing config.telegram_token')
 
-  const response = await request.post(`${telegram.base}${config.telegram_token}/sendMessage`, {
-    chat_id: id,
-    text,
-    ...param,
-  })
+  Object.assign(param, { chat_id: id, text, ...param })
+
+  if (param.chat_id.includes('_')) {
+    param.message_thread_id = param.chat_id.split('_')[1]
+    param.chat_id = param.chat_id.split('_')[0]
+  }
+
+  const response = await request.post(`${telegram.base}${config.telegram_token}/sendMessage`, param)
 
   check(response.ok, response.description)
 
