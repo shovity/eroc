@@ -391,6 +391,16 @@ export const cacher: {
 // slack.ts, telegram.ts
 export const slack: { send: (message: string, options?: SlackOptions) => Promise<void> }
 export const telegram: { send: (chatId: string, text: string) => Promise<void> }
+
+// Remaining modules (follow same patterns)
+// rio.ts - Express response/request utilities (success, error, cors, etc.)
+// ui.ts - UI template rendering helpers
+// scanner.ts - Auto-load routers/tasks/events from directories
+// query.ts - Query builder utilities
+// socket.ts - WebSocket emit via Redis pub/sub
+// gateway.ts - HTTP proxy middleware
+// counter.ts - Auto-increment counter (MongoDB)
+// sheet.ts - Google Sheets integration
 ```
 
 ## Testing
