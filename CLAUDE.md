@@ -4,66 +4,114 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-**eroc** là Express wrapper framework cung cấp batteries-included cho Node.js services. Modules được lazy-load qua Proxy pattern - chỉ load khi được gọi lần đầu.
+**eroc v3** là Express wrapper framework cung cấp batteries-included cho Node.js services. Viết bằng TypeScript, pure ESM, target Node.js 22+.
 
 ## Commands
 
 ```bash
+yarn build         # Build TypeScript với tsup
+yarn dev           # Build watch mode
+yarn test          # Node.js native test runner
+yarn test:coverage # Test với coverage
+yarn typecheck     # Type checking
 yarn lint          # ESLint + auto-fix
 yarn format        # Prettier
-yarn test          # Chạy integration tests (cần Docker)
 ```
-
-Test yêu cầu Docker Compose, tự động spin up Kafka, MongoDB, Redis, Zookeeper.
 
 ## Architecture
 
-### Entry Point
-`index.js` exports một Proxy auto-load modules từ `modules/` khi được access:
-```js
-const { create, config, logger } = require('eroc')
+### Entry Point & Exports
+
+Pure ESM package với subpath exports:
+
+```ts
+// Core exports từ main entry
+import { create, config, logger, check, util, tx, event } from 'eroc'
+
+// Subpath imports cho optional modules
+import { redis } from 'eroc/redis'
+import { mongoose } from 'eroc/mongoose'
+import { task } from 'eroc/task'
+import { kafka } from 'eroc/kafka'
 ```
 
-### Core Module: cardinal.js
-Module trung tâm xử lý:
-- Tạo Express app + HTTP server
-- Boot sequence: connect DB → apply middlewares → seek resources → start server
-- Auto-seek routers từ `seek_routers` directory
-- Auto-load events và tasks
-- Graceful shutdown với teardown handlers
+### Directory Structure
 
-### Key Modules
-| Module | Requires | Purpose |
-|--------|----------|---------|
-| config | - | Centralized config, merge từ config.js < config.override.js < redis |
-| cardinal | - | App factory + lifecycle management |
-| mongoose | mongo_uri | MongoDB ODM wrapper |
-| redis | redis_uri | Redis client wrapper |
-| task | kafka_broker | Kafka-based async tasks |
-| vanguard | - | Auth/authz middleware (detector + supervisor) |
-| cacher | redis_uri | Response caching middleware |
-| logger | - | Structured logging với transporter |
+```
+src/                 # TypeScript source files (flat structure)
+├── index.ts        # Main entry - exports core modules
+├── check.ts        # Assertion helpers (check, is, checkWith)
+├── config.ts       # Zod schema config với top-level await
+├── logger.ts       # Structured JSON logging
+├── util.ts         # Utilities (sleep, deferred, throttle, debounce)
+├── tx.ts           # AsyncLocalStorage request context
+├── event.ts        # Pub/sub event emitter
+├── jwt.ts          # JWT sign/verify using jose
+├── vanguard.ts     # Auth middleware (detect, supervise)
+├── request.ts      # HTTP client using native fetch
+├── schedule.ts     # Cron scheduling
+├── rio.ts          # Express utilities (cors, base, monitor)
+├── router.ts       # Express router with async wrapper
+├── cardinal.ts     # App factory + lifecycle orchestrator
+├── create.ts       # Re-export from cardinal
+├── redis.ts        # Redis client (peer dep: redis)
+├── mongoose.ts     # MongoDB ODM (peer dep: mongoose)
+├── kafka.ts        # Kafka client (peer dep: kafkajs)
+├── task.ts         # Task queue on Kafka
+├── lock.ts         # Distributed lock via Redis
+├── cacher.ts       # Response cache middleware
+├── counter.ts      # Auto-increment counter (MongoDB)
+├── scanner.ts      # Auto-load routers/tasks/events
+├── slack.ts        # Slack integration
+├── telegram.ts     # Telegram integration
+├── socket.ts       # WebSocket emitter via Redis pub/sub
+├── gateway.ts      # API gateway utilities
+├── query.ts        # Query parsing
+├── sheet.ts        # Spreadsheet utilities
+└── ui.ts           # UI helpers
+dist/               # Compiled output (gitignored)
+test/               # Test files (*.test.ts)
+```
 
-### Config Priority
-`config.js` → `config.override.js` → Redis key `eroc:service` (centralized)
+### Core Modules
 
-### Auto-seek Directories
-Khi `create()`, cardinal tự động scan và load từ working directory:
-- `routers/` - Express routers (auto-mount với prefix)
-- `tasks/` - Kafka task handlers
-- `events/` - Event handlers
+| Module | Purpose |
+|--------|---------|
+| config | Zod schema config, top-level await, env vars |
+| cardinal | App factory + lifecycle (boot, teardown) |
+| logger | Structured JSON logging với log levels |
+| tx | AsyncLocalStorage for request context (txid, req, res) |
+| check | Assertion helpers với TypeScript asserts |
+| vanguard | Auth middleware (detector + supervisor) |
+
+### Peer Dependencies (Optional)
+
+```bash
+npm install mongoose   # For eroc/mongoose
+npm install redis      # For eroc/redis, eroc/lock, eroc/cacher
+npm install kafkajs    # For eroc/kafka, eroc/task
+```
 
 ## Code Style
 
 - Single quotes, no semicolons, trailing commas
 - Print width: 120, tab width: 2
-- Global `check(condition, message)` - assertion helper, throws Error nếu condition false
-- Unused vars prefix với `_` hoặc tên `next` được allow
+- ESM imports với `.js` extension trong source
+- Prefer explicit types over inference
 
 ## Testing
 
-Test framework tự implement (`test/test.js`), không dùng external lib:
-```js
-test.start('test name')      // Bắt đầu test case
-test.check('test name', condition)  // Pass/fail assertion
+Node.js native test runner:
+
+```ts
+import { describe, it } from 'node:test'
+import assert from 'node:assert'
+
+describe('module', () => {
+  it('should work', () => {
+    assert.strictEqual(1 + 1, 2)
+  })
+})
 ```
+
+Run: `yarn test` hoặc `node --import tsx --test 'test/**/*.test.ts'`
