@@ -39,6 +39,8 @@ export const configSchema = z.object({
 
   request_base: z.string().optional(),
 
+  websocket_emitter: z.string().optional(),
+
   router_prefix: z.string().optional(),
   rio_monitor: z.boolean().default(false),
   api_monitor: z.boolean().default(false),

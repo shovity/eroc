@@ -46,7 +46,7 @@ async function doFetch<T>(method: string, url: string, body?: unknown, options: 
 export const request = {
   get<T = unknown>(url: string, params?: Record<string, unknown>, options?: RequestOptions): Promise<T> {
     const searchParams = params
-      ? '?' + new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
+      ? '?' + new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)] as [string, string])).toString()
       : ''
     return doFetch<T>('GET', url + searchParams, undefined, options)
   },
