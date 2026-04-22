@@ -37,6 +37,8 @@ export const configSchema = z.object({
   task_trip_max: z.coerce.number().default(10),
   task_loop_max: z.coerce.number().default(100),
 
+  request_base: z.string().optional(),
+
   router_prefix: z.string().optional(),
   rio_monitor: z.boolean().default(false),
   api_monitor: z.boolean().default(false),
