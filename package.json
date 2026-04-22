@@ -1,46 +1,183 @@
 {
   "name": "eroc",
-  "version": "2.8.10",
+  "version": "3.0.0",
   "license": "MIT",
-  "author": "Shovity <shovity@gmail.com",
-  "main": "index.js",
-  "types": "index.d.js",
-  "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint . --fix",
-    "prepare": "husky",
-    "test": "cd test && sh start.sh"
+  "author": "Shovity <shovity@gmail.com>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./check": {
+      "import": "./dist/check.js",
+      "types": "./dist/check.d.ts"
+    },
+    "./util": {
+      "import": "./dist/util.js",
+      "types": "./dist/util.d.ts"
+    },
+    "./config": {
+      "import": "./dist/config.js",
+      "types": "./dist/config.d.ts"
+    },
+    "./logger": {
+      "import": "./dist/logger.js",
+      "types": "./dist/logger.d.ts"
+    },
+    "./tx": {
+      "import": "./dist/tx.js",
+      "types": "./dist/tx.d.ts"
+    },
+    "./event": {
+      "import": "./dist/event.js",
+      "types": "./dist/event.d.ts"
+    },
+    "./jwt": {
+      "import": "./dist/jwt.js",
+      "types": "./dist/jwt.d.ts"
+    },
+    "./redis": {
+      "import": "./dist/redis.js",
+      "types": "./dist/redis.d.ts"
+    },
+    "./mongoose": {
+      "import": "./dist/mongoose.js",
+      "types": "./dist/mongoose.d.ts"
+    },
+    "./counter": {
+      "import": "./dist/counter.js",
+      "types": "./dist/counter.d.ts"
+    },
+    "./lock": {
+      "import": "./dist/lock.js",
+      "types": "./dist/lock.d.ts"
+    },
+    "./cacher": {
+      "import": "./dist/cacher.js",
+      "types": "./dist/cacher.d.ts"
+    },
+    "./kafka": {
+      "import": "./dist/kafka.js",
+      "types": "./dist/kafka.d.ts"
+    },
+    "./task": {
+      "import": "./dist/task.js",
+      "types": "./dist/task.d.ts"
+    },
+    "./request": {
+      "import": "./dist/request.js",
+      "types": "./dist/request.d.ts"
+    },
+    "./schedule": {
+      "import": "./dist/schedule.js",
+      "types": "./dist/schedule.d.ts"
+    },
+    "./slack": {
+      "import": "./dist/slack.js",
+      "types": "./dist/slack.d.ts"
+    },
+    "./telegram": {
+      "import": "./dist/telegram.js",
+      "types": "./dist/telegram.d.ts"
+    },
+    "./socket": {
+      "import": "./dist/socket.js",
+      "types": "./dist/socket.d.ts"
+    },
+    "./vanguard": {
+      "import": "./dist/vanguard.js",
+      "types": "./dist/vanguard.d.ts"
+    },
+    "./rio": {
+      "import": "./dist/rio.js",
+      "types": "./dist/rio.d.ts"
+    },
+    "./router": {
+      "import": "./dist/router.js",
+      "types": "./dist/router.d.ts"
+    },
+    "./scanner": {
+      "import": "./dist/scanner.js",
+      "types": "./dist/scanner.d.ts"
+    },
+    "./cardinal": {
+      "import": "./dist/cardinal.js",
+      "types": "./dist/cardinal.d.ts"
+    },
+    "./create": {
+      "import": "./dist/create.js",
+      "types": "./dist/create.d.ts"
+    },
+    "./gateway": {
+      "import": "./dist/gateway.js",
+      "types": "./dist/gateway.d.ts"
+    },
+    "./query": {
+      "import": "./dist/query.js",
+      "types": "./dist/query.d.ts"
+    },
+    "./sheet": {
+      "import": "./dist/sheet.js",
+      "types": "./dist/sheet.d.ts"
+    },
+    "./ui": {
+      "import": "./dist/ui.js",
+      "types": "./dist/ui.d.ts"
+    }
   },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.json": "prettier --write",
-    "package.json": "npx -y sort-package-json"
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "tsx test/index.ts",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
-    "cron": "^3.0.0",
-    "express": "^4.21.2",
-    "express-handlebars": "^6.0.6",
-    "express-list-endpoints": "^6.0.0",
-    "jose": "^5.9.6",
-    "kafkajs": "^1.16.0",
-    "mongoose": "^8.12.1",
-    "node-fetch": "^2.6.7",
-    "redis": "^4.6.10",
-    "uuid": "^9.0.1"
+    "cron": "^4.0.0",
+    "express": "^5.0.1",
+    "jose": "^6.0.0",
+    "zod": "^3.24.0"
+  },
+  "peerDependencies": {
+    "kafkajs": "^2.0.0",
+    "mongoose": "^8.0.0",
+    "redis": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "kafkajs": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    },
+    "redis": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "eslint": "^8.27.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.5.0",
-    "prettier": "^2.7.1"
+    "prettier": "^3.4.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write"
+    ],
+    "*.json": "prettier --write"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.0.0"
   }
 }
