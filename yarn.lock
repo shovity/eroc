@@ -262,6 +262,33 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@redis/bloom@5.12.1":
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-5.12.1.tgz#047dbfce93cfa7e5879fb58ad1b2afe87ebb2dc4"
+  integrity sha512-PUUfv+ms7jgPSBVoo/DN4AkPHj4D5TZSd6SbJX7egzBplkYUcKmHRE8RKia7UtZ8bSQbLguLvxVO+asKtQfZWA==
+
+"@redis/client@5.12.1":
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-5.12.1.tgz#a35a2bac546c727d7915d2d91b63a77111e51ebd"
+  integrity sha512-7aPGWeqA3uFm43o19umzdl16CEjK/JQGtSXVPevplTaOU3VJA/rseBC1QvYUz9lLDIMBimc4SW/zrW4S89BaCA==
+  dependencies:
+    cluster-key-slot "1.1.2"
+
+"@redis/json@5.12.1":
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/@redis/json/-/json-5.12.1.tgz#52aff987abe4d41ec9644857fb00f16c7a97fdb7"
+  integrity sha512-eOze75esLve4vfqDel7aMX08CNaiLLQS2fV8mpRN9NxPe1rVR4vQyYiW/OgtGUysF6QOr9ANhfxABKNOJfXdKg==
+
+"@redis/search@5.12.1":
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/@redis/search/-/search-5.12.1.tgz#b7a738be918c8a7af91e39c5bd2023f30f392981"
+  integrity sha512-ItlxbxC9cKI6IU1TLWoczwJCRb6TdmkEpWv05UrPawqaAnWGRu3rcIqsc5vN483T2fSociuyV1UkWIL5I4//2w==
+
+"@redis/time-series@5.12.1":
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-5.12.1.tgz#15b6deaaf3716bc2633311c0ed18201c9299392d"
+  integrity sha512-c6JL6E3EcZJuNqKFz+KM+l9l5mpcQiKvTwgA3blt5glWJ8hjDk0yeHN3beE/MpqYIQ8UEX44ItQzgkE/gCBELQ==
+
 "@rollup/rollup-android-arm-eabi@4.60.2":
   version "4.60.2"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.60.2.tgz#a19c645c375158cd5c50a344106f0fa18eb821c4"
@@ -654,6 +681,11 @@ cli-truncate@^4.0.0:
   dependencies:
     slice-ansi "^5.0.0"
     string-width "^7.0.0"
+
+cluster-key-slot@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz#88ddaa46906e303b5de30d3153b7d9fe0a0c19ac"
+  integrity sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==
 
 color-convert@^2.0.1:
   version "2.0.1"
@@ -1706,6 +1738,17 @@ readdirp@^4.0.1:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-4.1.2.tgz#eb85801435fbf2a7ee58f19e0921b068fc69948d"
   integrity sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==
+
+redis@^5.12.1:
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-5.12.1.tgz#f95297e01eca8b87a109601a2418647e05f16bee"
+  integrity sha512-LDsoVvb/CpoV9EN3FXvgvSHNJWuCIzl9MiO3ppOevuGLpSGJhwfQjpEwfFJcQvNSddHADDdZaWx0HnmMxRXG7g==
+  dependencies:
+    "@redis/bloom" "5.12.1"
+    "@redis/client" "5.12.1"
+    "@redis/json" "5.12.1"
+    "@redis/search" "5.12.1"
+    "@redis/time-series" "5.12.1"
 
 resolve-from@^4.0.0:
   version "4.0.0"
