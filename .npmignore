@@ -1,2 +1,9 @@
 .*
+src
 test
+docs
+util
+CLAUDE.md
+tsconfig.json
+tsup.config.ts
+yarn.lock
