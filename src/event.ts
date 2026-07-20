@@ -1,31 +1,23 @@
 // src/event.ts
+// Distributed events across services via Redis pub/sub (channel: event.<name>)
+import { redis } from './redis.js'
+import { logger } from './logger.js'
+
 type EventHandler<T = unknown> = (data: T) => void | Promise<void>
 
-const handlers = new Map<string, Set<EventHandler>>()
-
 export const event = {
-  emit(name: string, data: unknown): void {
-    const set = handlers.get(name)
-    if (!set) return
-    for (const handler of set) {
-      try {
-        handler(data)
-      } catch (err) {
-        console.error(`event: handler error for ${name}`, err)
-      }
-    }
+  emit(name: string, data?: unknown): void {
+    redis.pub(`event.${name}`, data ?? null).catch((err) => {
+      logger.error(`event: emit failed for ${name}`, { error: String(err) })
+    })
   },
 
-  on<T = unknown>(name: string, handler: EventHandler<T>): void {
-    if (!handlers.has(name)) {
-      handlers.set(name, new Set())
-    }
-    handlers.get(name)!.add(handler as EventHandler)
-  },
-
-  off(name: string, handler: EventHandler): void {
-    const set = handlers.get(name)
-    set?.delete(handler)
+  async on<T = unknown>(name: string, handler: EventHandler<T>): Promise<void> {
+    await redis.sub<T>(`event.${name}`, (data) => {
+      Promise.resolve(handler(data)).catch((err) => {
+        logger.error(`event: handler error for ${name}`, { error: String(err) })
+      })
+    })
   },
 }
 

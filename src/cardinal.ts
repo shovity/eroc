@@ -1,4 +1,3 @@
-// src/cardinal.ts
 import http from 'node:http'
 import path from 'node:path'
 import express, { type Application, type ErrorRequestHandler } from 'express'
@@ -9,9 +8,6 @@ import { logger, initLogger } from './logger.js'
 import { tx } from './tx.js'
 import { rio } from './rio.js'
 import { vanguard } from './vanguard.js'
-import { redis } from './redis.js'
-import { disconnect as disconnectMongo } from './mongoose.js'
-import { disconnectKafka } from './kafka.js'
 
 interface Cardinal {
   app: Application | null
@@ -37,19 +33,26 @@ export async function shutdown(): Promise<void> {
   cardinal.isShuttingDown = true
   const start = Date.now()
 
+  // Stop accepting connections, drain in-flight requests
+  if (cardinal.server?.listening) {
+    await new Promise<void>((resolve) => cardinal.server!.close(() => resolve()))
+  }
+
   await Promise.all(cardinal.teardownHandlers.map((h) => h().catch(() => {})))
 
-  // Disconnect integrations
-  await redis.disconnect().catch(() => {})
-  await disconnectMongo().catch(() => {})
-  await disconnectKafka().catch(() => {})
+  // Disconnect integrations — dynamic imports so peer deps stay optional
+  await Promise.all([
+    import('./redis.js').then((m) => m.redis.disconnect()),
+    import('./mongoose.js').then((m) => m.disconnect()),
+    import('./kafka.js').then((m) => m.disconnectKafka()),
+  ]).catch(() => {})
 
   logger.info(`cardinal: shutdown completed in ${Date.now() - start}ms`)
 }
 
 const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
-  const response = {
-    message: error.message || 'Unknown error',
+  const response: Record<string, unknown> = {
+    message: error.message || String(error) || 'Unknown error',
     service: config.service,
     env: config.env,
     txid: tx.get('txid'),
@@ -57,10 +60,17 @@ const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     method: req.method,
   }
 
+  // 'Some message code:some_code' -> { message, code } for machine-readable errors
+  if (typeof response.message === 'string' && response.message.includes('code:')) {
+    const [message, code] = response.message.split('code:')
+    response.message = message.trim()
+    response.code = code.trim()
+  }
+
   const status = error.status || (res.statusCode === 200 ? 400 : res.statusCode)
   res.status(status).json({ error: response })
 
-  logger.error(response.message, { error: String(error), stack: error.stack })
+  logger.error(String(response.message), { error: String(error), stack: error.stack })
 }
 
 export type MiddlewareSetup = (app: Application) => void | Promise<void>
@@ -68,7 +78,7 @@ export type MiddlewareSetup = (app: Application) => void | Promise<void>
 export async function setup(middleware?: MiddlewareSetup): Promise<void> {
   const app = cardinal.app!
 
-  initLogger({ service: config.service, transporter: config.logger_transporter })
+  initLogger({ service: config.service, transporter: config.logger_transporter, appDir: config.app_dir })
 
   app.use(express.json({ limit: '10mb' }))
   app.use(express.urlencoded({ extended: false }))
@@ -76,12 +86,19 @@ export async function setup(middleware?: MiddlewareSetup): Promise<void> {
   app.use(tx.init())
   app.use(rio.cors())
   app.use(rio.base())
-  app.use(rio.util())
-  app.use(rio.auth())
+
+  // Log every API action in local dev
+  if (config.env === 'local') {
+    app.use(rio.apiLog())
+  }
 
   if (config.rio_monitor) {
     app.use(rio.monitor())
   }
+
+  // k8s health probes at root (livez/readyz/healthz), bypass auth
+  const { health } = await import('./health.js')
+  app.use(health.router())
 
   const prefix = config.router_prefix || config.service
   app.use(path.join('/', prefix), rio.default())
@@ -128,6 +145,15 @@ export async function setup(middleware?: MiddlewareSetup): Promise<void> {
         process.exit(0)
       })
     }
+
+    process.on('uncaughtException', async (err) => {
+      logger.error('cardinal: uncaughtException', { error: String(err), stack: err.stack })
+      try {
+        await shutdown()
+      } finally {
+        process.exit(1)
+      }
+    })
   }
 
   if (config.port) {
@@ -142,6 +168,7 @@ export async function setup(middleware?: MiddlewareSetup): Promise<void> {
 export function create(middleware?: MiddlewareSetup): {
   app: Application
   server: http.Server
+  ready: Promise<void>
   shutdown: typeof shutdown
 } {
   const app = express()
@@ -150,11 +177,13 @@ export function create(middleware?: MiddlewareSetup): {
   cardinal.app = app
   cardinal.server = server
 
-  setup(middleware).catch((err) => {
+  const ready = setup(middleware).catch((err) => {
     logger.error('cardinal: setup failed', { error: String(err) })
+    deferred.setup.reject(err)
+    throw err
   })
 
-  return { app, server, shutdown }
+  return { app, server, ready, shutdown }
 }
 
 export { cardinal }

@@ -44,12 +44,12 @@ describe('vanguard', () => {
     assert.strictEqual(req.auth?.uid, '456')
   })
 
-  it('should have supervisor tiat', async () => {
+  it('should have supervisor login', async () => {
     const { vanguard } = await import('../src/vanguard.js')
 
-    assert.ok(vanguard.supervisors.tiat)
+    assert.ok(vanguard.supervisors.login)
 
-    const middleware = vanguard.supervisors.tiat()
+    const middleware = vanguard.supervisors.login()
 
     // Without auth - should return 401
     const req1 = { auth: undefined } as any
@@ -63,5 +63,31 @@ describe('vanguard', () => {
 
     middleware(req1, res1, () => assert.fail('should not call next'))
     assert.strictEqual(statusCode, 401)
+  })
+
+  it('supervisor internal should pass non-internal routes and deny unsigned /in/ calls', async () => {
+    const { vanguard } = await import('../src/vanguard.js')
+
+    const middleware = vanguard.supervisors.internal()
+
+    // Non-internal route passes through
+    let nextCalled = false
+    middleware({ originalUrl: '/user/v1/users', method: 'GET', headers: {} } as any, {} as any, () => {
+      nextCalled = true
+    })
+    assert.strictEqual(nextCalled, true)
+
+    // Unsigned /in/ call is denied (no internal_hmac_secret configured -> fail-secure)
+    let statusCode = 0
+    const res = {
+      status: (code: number) => {
+        statusCode = code
+        return { json: () => {} }
+      },
+    } as any
+    middleware({ originalUrl: '/user/in/verify', method: 'GET', headers: {} } as any, res, () =>
+      assert.fail('should not call next'),
+    )
+    assert.strictEqual(statusCode, 403)
   })
 })

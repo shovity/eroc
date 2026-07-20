@@ -11,9 +11,10 @@ async function getFiles(dir: string): Promise<string[]> {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) files.push(...(await getFiles(fullPath)))
-    else if (entry.name.endsWith('.js') || entry.name.endsWith('.ts')) files.push(fullPath)
+    // Only load conventionally-named modules; skip dotfiles, tests, uppercase
+    else if (/^[a-z][a-z0-9-]*\.(js|ts)$/.test(entry.name)) files.push(fullPath)
   }
-  return files
+  return files.sort()
 }
 
 export const scanner = {

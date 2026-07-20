@@ -22,9 +22,14 @@ export const tx = {
   init(): RequestHandler {
     return (req, res, next) => {
       storage.run(new Map(), () => {
-        tx.set('txid', randomUUID())
+        // Propagate txid across services via x-txid header
+        const txid = (req.headers['x-txid'] as string) || randomUUID()
+        tx.set('txid', txid)
+        tx.set('url', req.originalUrl)
+        tx.set('method', req.method)
         tx.set('req', req)
         tx.set('res', res)
+        res.append('x-txid', txid)
         next()
       })
     }

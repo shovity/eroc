@@ -26,6 +26,10 @@ export const util = {
     }
   },
 
+  maskUri(uri: string | undefined): string | undefined {
+    return uri?.replace(/:([^/:@]+)@/, ':***@')
+  },
+
   intersect<T extends object>(target: T, source: Partial<T>): T {
     const result = { ...target }
     for (const key of Object.keys(source) as Array<keyof T>) {

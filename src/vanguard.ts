@@ -1,6 +1,9 @@
 import type { RequestHandler, Request } from 'express'
 import { jwt } from './jwt.js'
+import { tx } from './tx.js'
 import { config } from './config.js'
+import { internal } from './internal.js'
+import { check } from './check.js'
 
 declare global {
   namespace Express {
@@ -36,17 +39,14 @@ const detectors: Record<string, Detector> = {
 }
 
 const supervisors: Record<string, () => RequestHandler> = {
-  tiat: () => (req, res, next) => {
-    if (!req.auth) {
-      return res.status(401).json({ error: { message: 'Unauthorized' } })
-    }
-    next()
-  },
-
+  // Authenticate /:service/in/* routes via HMAC-signed internal requests
   internal: () => (req, res, next) => {
-    const secret = req.headers['x-internal-secret']
-    if (secret !== config.secret) {
-      return res.status(403).json({ error: { message: 'Forbidden' } })
+    const path = req.originalUrl.split('?')[0]
+
+    if (!/^\/[a-z0-9-]+\/in\//.test(path)) return next()
+
+    if (!internal.verify({ method: req.method, path, headers: req.headers })) {
+      return res.status(403).json({ error: { message: 'Internal api access denied' } })
     }
     next()
   },
@@ -66,7 +66,7 @@ export const vanguard = {
       .map((d) => d.trim())
       .filter(Boolean)
 
-    return async (req, _res, next) => {
+    return async (req, res, next) => {
       for (const name of enabledDetectors) {
         const detector = detectors[name]
         if (!detector) continue
@@ -75,12 +75,23 @@ export const vanguard = {
         if (!token) continue
 
         try {
-          req.auth = await jwt.verify<AuthPayload>(token)
+          // Prefer RS256 access tokens when keys are configured, else HS256
+          req.auth = config.jwt_public_key
+            ? await jwt.verifyAccessToken<AuthPayload>(token)
+            : await jwt.verify<AuthPayload>(token)
           break
         } catch {
-          // Invalid token, try next detector
+          // Invalid token — clear a bad cookie so the client stops sending it
+          if (req.cookies?.token === token) {
+            res.clearCookie('token')
+          }
         }
       }
+
+      if (req.auth?.uid) {
+        tx.set('uid', req.auth.uid)
+      }
+
       next()
     }
   },
@@ -91,7 +102,11 @@ export const vanguard = {
       .map((s) => s.trim())
       .filter(Boolean)
 
-    const middlewares = enabledSupervisors.map((name) => supervisors[name]?.()).filter(Boolean) as RequestHandler[]
+    const middlewares = enabledSupervisors.map((name) => {
+      const supervisor = supervisors[name]
+      check(supervisor, `vanguard: supervisor not found: "${name}"`)
+      return supervisor()
+    })
 
     return (req, res, next) => {
       if (middlewares.length === 0) return next()

@@ -43,22 +43,24 @@ src/                 # TypeScript source files (flat structure)
 ├── check.ts        # Assertion helpers (check, is, checkWith)
 ├── config.ts       # Zod schema config với top-level await
 ├── logger.ts       # Structured JSON logging
-├── util.ts         # Utilities (sleep, deferred, throttle, debounce)
-├── tx.ts           # AsyncLocalStorage request context
-├── event.ts        # Pub/sub event emitter
-├── jwt.ts          # JWT sign/verify using jose
-├── vanguard.ts     # Auth middleware (detect, supervise)
+├── util.ts         # Utilities (sleep, deferred, throttle, debounce, maskUri)
+├── tx.ts           # AsyncLocalStorage request context (x-txid propagation)
+├── event.ts        # Distributed events via Redis pub/sub (channel: event.*)
+├── jwt.ts          # JWT: HS256 generic + RS256 access/refresh tokens (jose)
+├── internal.ts     # HMAC-signed inter-service auth (replay-protected)
+├── health.ts       # k8s probes: /livez /readyz /healthz + custom checks
+├── ratelimit.ts    # Sliding-window rate limit (Redis sorted set, fail-open)
+├── vanguard.ts     # Auth middleware (detect, supervise: internal, login)
 ├── request.ts      # HTTP client using native fetch
 ├── schedule.ts     # Cron scheduling
-├── rio.ts          # Express utilities (cors, base, monitor)
-├── router.ts       # Express router with async wrapper
+├── rio.ts          # Express utilities (cors, base with req.gp/res.success, apiLog, monitor)
+├── router.ts       # Re-export express Router (Express 5 handles async natively)
 ├── cardinal.ts     # App factory + lifecycle orchestrator
-├── create.ts       # Re-export from cardinal
 ├── redis.ts        # Redis client (peer dep: redis)
 ├── mongoose.ts     # MongoDB ODM (peer dep: mongoose)
-├── kafka.ts        # Kafka client (peer dep: kafkajs)
-├── task.ts         # Task queue on Kafka
-├── lock.ts         # Distributed lock via Redis
+├── kafka.ts        # Kafka client, consumer-per-topic pub/sub (peer dep: kafkajs)
+├── task.ts         # Task queue on Kafka (HMAC-signed, loop/trip protection)
+├── lock.ts         # Distributed lock via Redis (token-safe, pub/sub wait queue)
 ├── cacher.ts       # Response cache middleware
 ├── counter.ts      # Auto-increment counter (MongoDB)
 ├── scanner.ts      # Auto-load routers/tasks/events
@@ -66,9 +68,7 @@ src/                 # TypeScript source files (flat structure)
 ├── telegram.ts     # Telegram integration
 ├── socket.ts       # WebSocket emitter via Redis pub/sub
 ├── gateway.ts      # API gateway utilities
-├── query.ts        # Query parsing
-├── sheet.ts        # Spreadsheet utilities
-└── ui.ts           # UI helpers
+└── query.ts        # Query parsing
 dist/               # Compiled output (gitignored)
 test/               # Test files (*.test.ts)
 ```

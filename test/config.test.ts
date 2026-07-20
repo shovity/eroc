@@ -37,6 +37,17 @@ describe('config', () => {
     }
   })
 
+  it('should coerce boolean-ish env strings', async () => {
+    const { configSchema } = await import('../src/config.js')
+
+    assert.strictEqual(configSchema.parse({ rio_monitor: 'true' }).rio_monitor, true)
+    assert.strictEqual(configSchema.parse({ rio_monitor: '1' }).rio_monitor, true)
+    assert.strictEqual(configSchema.parse({ rio_monitor: 'false' }).rio_monitor, false)
+    assert.strictEqual(configSchema.parse({ enable_teardown: 'false' }).enable_teardown, false)
+    assert.strictEqual(configSchema.parse({}).enable_teardown, true)
+    assert.strictEqual(configSchema.parse({ rio_monitor: true }).rio_monitor, true)
+  })
+
   it('should reject invalid env', async () => {
     const { configSchema } = await import('../src/config.js')
 

@@ -1,9 +1,11 @@
 import type { RequestHandler } from 'express'
-import { request } from './request.js'
+
 interface GatewayOptions {
   target: string
   pathRewrite?: Record<string, string>
 }
+
+// ponytail: buffered proxy, no streaming — switch to piping if large payloads matter
 export function gateway(options: GatewayOptions): RequestHandler {
   return async (req, res, next) => {
     try {
@@ -11,10 +13,21 @@ export function gateway(options: GatewayOptions): RequestHandler {
       if (options.pathRewrite)
         for (const [from, to] of Object.entries(options.pathRewrite))
           targetPath = targetPath.replace(new RegExp(from), to)
-      const url = `${options.target}${targetPath}`
-      const method = req.method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete'
-      const response = await request[method](url, req.body, { headers: req.headers as Record<string, string> })
-      res.json(response)
+
+      const headers = { ...req.headers } as Record<string, string>
+      delete headers.host
+      delete headers['content-length']
+
+      const upstream = await fetch(`${options.target}${targetPath}`, {
+        method: req.method,
+        headers,
+        body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+      })
+
+      res.status(upstream.status)
+      const contentType = upstream.headers.get('content-type')
+      if (contentType) res.setHeader('Content-Type', contentType)
+      res.send(Buffer.from(await upstream.arrayBuffer()))
     } catch (err) {
       next(err)
     }

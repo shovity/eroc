@@ -37,6 +37,21 @@ describe('logger', () => {
     assert.ok(parsed.timestamp)
   })
 
+  it('should include txid from tx context', async () => {
+    const { createLogger } = await import('../src/logger.js')
+    const { tx } = await import('../src/tx.js')
+
+    let output = ''
+    const logger = createLogger({ output: (str: string) => (output = str) })
+
+    await tx.run(() => {
+      tx.set('txid', 'test-txid-123')
+      logger.info('inside tx')
+    })
+
+    assert.strictEqual(JSON.parse(output).txid, 'test-txid-123')
+  })
+
   it('should respect log level filtering', async () => {
     const { createLogger } = await import('../src/logger.js')
 

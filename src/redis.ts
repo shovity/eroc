@@ -2,9 +2,10 @@
 import { createClient, type RedisClientType } from 'redis'
 import { config } from './config.js'
 import { logger } from './logger.js'
+import { util } from './util.js'
 
 let client: RedisClientType | null = null
-let teardownRegistered = false
+const subscribers: RedisClientType[] = []
 
 async function getClient(): Promise<RedisClientType> {
   if (client?.isOpen) return client
@@ -18,30 +19,40 @@ async function getClient(): Promise<RedisClientType> {
   client.on('error', (err) => logger.error('redis: connection error', { error: String(err) }))
 
   await client.connect()
-  logger.info(`redis: connected - ${config.redis_uri}`)
+  logger.info(`redis: connected - ${util.maskUri(config.redis_uri)}`)
 
   return client
 }
 
+// Values are JSON-serialized on write and parsed on read, so callers can
+// store objects directly
 export const redis = {
   get client() {
     return client
   },
+
+  getClient,
 
   async cmd<T = unknown>(...args: [string, ...unknown[]]): Promise<T> {
     const c = await getClient()
     return c.sendCommand(args as [string]) as Promise<T>
   },
 
-  async get<T = string>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     const c = await getClient()
     const value = await c.get(key)
-    return value as T | null
+    return value === null ? null : (JSON.parse(value) as T)
   },
 
-  async set(key: string, value: string, options?: { EX?: number }): Promise<void> {
+  async set(key: string, value: unknown, options?: { EX?: number; PX?: number; NX?: boolean }): Promise<string | null> {
     const c = await getClient()
-    await c.set(key, value, options)
+    return c.set(key, JSON.stringify(value), options)
+  },
+
+  async getdel<T = unknown>(key: string): Promise<T | null> {
+    const c = await getClient()
+    const value = await c.getDel(key)
+    return value === null ? null : (JSON.parse(value) as T)
   },
 
   async del(key: string): Promise<number> {
@@ -54,19 +65,25 @@ export const redis = {
     return c.expire(key, seconds)
   },
 
-  async hget(key: string, field: string): Promise<string | null> {
+  async hget<T = unknown>(key: string, field: string): Promise<T | null> {
     const c = await getClient()
-    return c.hGet(key, field) ?? null
+    const value = await c.hGet(key, field)
+    return value == null ? null : (JSON.parse(value) as T)
   },
 
-  async hset(key: string, field: string, value: string): Promise<number> {
+  async hset(key: string, field: string, value: unknown): Promise<number> {
     const c = await getClient()
-    return c.hSet(key, field, value)
+    return c.hSet(key, field, JSON.stringify(value))
   },
 
-  async hgetall(key: string): Promise<Record<string, string>> {
+  async hgetall<T = unknown>(key: string): Promise<Record<string, T>> {
     const c = await getClient()
-    return c.hGetAll(key)
+    const reply = await c.hGetAll(key)
+    const result: Record<string, T> = {}
+    for (const [k, v] of Object.entries(reply)) {
+      result[k] = JSON.parse(v as string) as T
+    }
+    return result
   },
 
   async hdel(key: string, field: string): Promise<number> {
@@ -74,20 +91,28 @@ export const redis = {
     return c.hDel(key, field)
   },
 
-  async pub(channel: string, message: string | object): Promise<number> {
+  async pub(channel: string, message: unknown): Promise<number> {
     const c = await getClient()
-    const payload = typeof message === 'string' ? message : JSON.stringify(message)
-    return c.publish(channel, payload)
+    return c.publish(channel, JSON.stringify(message))
   },
 
-  async sub(channel: string, callback: (message: string) => void): Promise<void> {
+  // Pattern subscribe — messages are JSON-parsed before the callback
+  async sub<T = unknown>(channel: string, callback: (message: T, channel: string) => void): Promise<void> {
     const c = await getClient()
     const subscriber = c.duplicate()
     await subscriber.connect()
-    await subscriber.subscribe(channel, callback)
+    await subscriber.pSubscribe(channel, (message, ch) => {
+      try {
+        callback(JSON.parse(message) as T, ch)
+      } catch (err) {
+        logger.error(`redis: sub handler error for ${ch}`, { error: String(err) })
+      }
+    })
+    subscribers.push(subscriber as RedisClientType)
   },
 
   async disconnect(): Promise<void> {
+    await Promise.all(subscribers.splice(0).map((s) => (s.isOpen ? s.quit().catch(() => {}) : null)))
     if (client?.isOpen) {
       await client.quit()
       logger.info('redis: disconnected')
