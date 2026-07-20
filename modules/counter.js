@@ -14,7 +14,7 @@ const schema = new mongoose.Schema(
 
 schema.index({ key: 1 })
 
-counter.Counter = mongoose.model('ErocCounter', schema)
+counter.Counter = mongoose.model('CoreCounter', schema)
 
 counter.get = async (key) => {
   const c = await counter.Counter.findOneAndUpdate(

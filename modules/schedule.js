@@ -11,7 +11,7 @@ schedule.add = (expr, handle, option = {}) => {
   const wrap = async () => {
     try {
       if (config.schedule_look && config.redis_uri) {
-        const { redis } = require('eroc')
+        const redis = require('./redis')
 
         if (
           !(await redis.set(`schedule:lock:${index}`, true, {

@@ -1,120 +1,36 @@
 const config = require('./config')
-const request = require('./request')
 const jwt = require('./jwt')
 const tx = require('./tx')
+const internal = require('./internal')
 const Router = require('./Router')
 
 const vanguard = {
   detector: {
     token: () => {
       return async (req) => {
-        if (!req.u.user && req.headers.token) {
-          req.u.user = await jwt.verify(req.headers.token)
-        }
-      }
-    },
+        if (req.u.user) return
 
-    cookie: () => {
-      return async (req) => {
-        if (!req.u.user && req.cookies.token) {
-          req.u.user = await jwt.verify(req.cookies.token)
-        }
-      }
-    },
+        // RFC 6750: Authorization: Bearer <token>
+        const authHeader = req.headers.authorization
 
-    client: () => {
-      check(config.redis_uri, 'Vangards detector "client" require confnig.redis_uri')
-      const redis = require('./redis')
+        if (authHeader?.startsWith('Bearer ')) {
+          const token = authHeader.slice(7)
 
-      return async (req) => {
-        if (!req.u.client && req.headers.client) {
-          req.u.client = await redis.hget('user:client', req.headers.client)
+          req.u.user = await jwt.verifyAccessToken(token)
+          req.u.accessToken = token
         }
       }
     },
   },
 
   supervisor: {
-    tiat: () => {
-      check(config.redis_uri, 'Vangards supervisor "tiat" require confnig.redis_uri')
-      const redis = require('./redis')
-
-      return (req, res, next) => {
-        const handle = async () => {
-          if (!req.u.user) {
-            return next()
-          }
-
-          const tiat = await redis.hget('user_tiat', req.u.user._id)
-
-          if (tiat === null) {
-            res.u.cookie('token', '')
-
-            return next({
-              message: 'User not found in vanguard code:vanguard_user_not_found',
-              logout: true,
-            })
-          }
-
-          if (req.u.user.iat < tiat) {
-            const token = req.headers.token || req.cookies.token
-            const { data } = await request.post(config.vanguard_refresh_token_url, { token })
-            req.u.user = await jwt.verify(data.token)
-
-            if (req.headers.token) {
-              return next({
-                message: 'Token expired code:token_expired',
-                token: data.token,
-              })
-            } else {
-              res.u.cookie('token', data.token)
-              req.cookies.token = data.token
-              req.headers.cookie = req.headers.cookie.replace(`token=${token}`, `token=${data.token}`)
-            }
-          }
-
-          if (req.u.user.status && req.u.user.status !== 'active') {
-            return next({
-              message: 'User status not active code:user_status_not_active',
-              logout: true,
-            })
-          }
-
-          next()
-        }
-
-        handle().catch((error) => {
-          res.u.cookie('token', '')
-
-          return next({
-            message: error.message || error,
-            logout: true,
-          })
-        })
-      }
-    },
-
     internal: () => {
       const router = Router()
 
       router.use('/:service([a-z-]+)/in/*', async (req, res, next) => {
-        check(req.headers.client === config.client, 'Internal api access denied')
-        next()
-      })
-
-      return router
-    },
-
-    ui: () => {
-      check(config.redis_uri, 'Vangards supervisor "ui" require confnig.redis_uri')
-      const redis = require('./redis')
-      const router = Router()
-
-      router.use('/:service([a-z-]+)/ui/:path(*)', async (req, res, next) => {
-        const { service, path } = req.params
-        const role = await redis.hget('vanguard:ui', `/${service}~${path}`)
-
-        role && (await req.auth.or(role))
+        // Rebuild the signed path from route params (req.path is unreliable here).
+        const path = `/${req.params.service}/in/${req.params[0]}`
+        check(internal.verify({ method: req.method, path, headers: req.headers }), 'Internal api access denied')
         next()
       })
 
@@ -123,11 +39,7 @@ const vanguard = {
 
     login: () => {
       return async (req, res, next) => {
-        if (!req.u.user && !req.u.client) {
-          if (!req.headers['content-type']) {
-            return res.redirect(`/login?next=${req.originalUrl}`)
-          }
-
+        if (!req.u.user) {
           return res.status(401).error('401 Unauthorized')
         }
 
@@ -162,7 +74,7 @@ vanguard.detect = () => {
       }
 
       if (req.u.user) {
-        tx.set('uid', req.u.user._id)
+        tx.set('uid', req.u.user.uid)
       }
     }
 
@@ -182,6 +94,7 @@ vanguard.detect = () => {
 
 vanguard.supervise = () => {
   const router = Router()
+  const enabled = []
 
   for (const raw of config.vanguard_supervisor.split(',')) {
     const name = raw.trim()
@@ -194,7 +107,10 @@ vanguard.supervise = () => {
     check(supervisor, `vanguard: supervisor not found: "${name}"`)
 
     router.use(supervisor)
+    enabled.push(name)
   }
+
+  console.info(`vanguard: 🛡️ Supervisor enabled: ${enabled.length ? enabled.join(', ') : '(none)'}`)
 
   return router
 }

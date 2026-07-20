@@ -6,7 +6,14 @@ module.exports = {
     node: true,
   },
   extends: ['plugin:prettier/recommended', 'eslint:recommended'],
-  overrides: [],
+  overrides: [
+    {
+      files: ['*.spec.js'],
+      env: {
+        jest: true,
+      },
+    },
+  ],
   parserOptions: {
     ecmaVersion: 'latest',
   },

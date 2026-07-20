@@ -1,6 +1,7 @@
 const origin = require('redis')
 const config = require('./config')
 const cardinal = require('./cardinal')
+const util = require('./util')
 
 check(config.redis_uri, 'Missing config.redis_uri')
 
@@ -10,7 +11,7 @@ redis.client = origin.createClient({ url: config.redis_uri })
 redis.client.connect()
 
 redis.client.on('connect', () => {
-  console.info(`redis: 🍉 Connected - ${config.redis_uri}`)
+  console.info(`redis: 🍉 Connected - ${util.maskUri(config.redis_uri)}`)
 
   cardinal.teardown(async () => {
     await redis.client.disconnect()
@@ -58,6 +59,10 @@ redis.hdel = async (key, name) => {
 
 redis.del = async (key) => {
   return redis.client.DEL(key)
+}
+
+redis.getdel = async (key) => {
+  return JSON.parse(await redis.client.GETDEL(key))
 }
 
 redis.sub = async (channel, callback) => {

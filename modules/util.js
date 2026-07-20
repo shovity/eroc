@@ -11,7 +11,7 @@ util.readble = async (dir) => {
   try {
     await fs.access(dir)
     return true
-  } catch (error) {
+  } catch {
     return false
   }
 }
@@ -95,6 +95,11 @@ util.debounce = (wait = 200) => {
   }
 
   return instance
+}
+
+util.maskUri = (uri) => {
+  if (!uri) return uri
+  return uri.replace(/:([^/:@]+)@/, ':***@')
 }
 
 module.exports = util

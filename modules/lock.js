@@ -1,4 +1,5 @@
-const { redis, util } = require('eroc')
+const redis = require('./redis')
+const util = require('./util')
 
 const RELEASE_CHANNEL = 'lock:release'
 const map = new Map()

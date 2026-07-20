@@ -1,8 +1,6 @@
 const Event = require('node:events')
 const util = require('./util')
-const Router = require('./Router')
 const config = require('./config')
-const query = require('./query')
 
 const rio = {}
 
@@ -141,6 +139,9 @@ rio.util = () => {
     req.u.cookie = (key, value, option = {}) => {
       option = {
         maxAge: 31104000000,
+        httpOnly: true,
+        secure: config.env === 'production',
+        sameSite: 'lax',
         ...option,
       }
 
@@ -157,58 +158,20 @@ rio.auth = () => {
       login: async () => {
         check(req.u.user, 'Require login code:requrie_login')
       },
+      // Authorization check against the authenticated user's roles.
       role: async (role, interrupt = true) => {
         const roles = role.split(' ').filter((r) => r)
-        const user = req.u.user
+        const has = req.u.user ? req.u.user.roles : []
 
         if (interrupt) {
-          check(user, 'Require login')
-          check(util.intersect(user.roles, roles), {
-            message: '403 Forbidden',
-            require: roles,
-          })
-        } else {
-          return user && util.intersect(user.roles, roles)
-        }
-      },
-      client: async (permission, interrupt = true) => {
-        const permissions = permission.split(' ').filter((p) => p)
-        const client = req.u.client
+          const accept = roles.join(', ')
 
-        if (interrupt) {
-          check(client, 'Require client key')
-          check(util.intersect(client.permissions, permissions), {
-            message: 'Insufficient permission',
-            require: permissions,
-          })
-        } else {
-          return client && util.intersect(client.permissions, permissions)
-        }
-      },
-      or: async (permission, interrupt = true) => {
-        const permissions = permission.split(' ').filter((p) => p)
-        const user = req.u.user
-        const client = req.u.client
-
-        const has = []
-
-        if (user) {
-          has.push(...user.roles)
-        }
-
-        if (client) {
-          has.push(...client.permissions)
-        }
-
-        if (interrupt) {
-          const accept = permissions.join(', ')
-
-          check(util.intersect(has, permissions), {
+          check(util.intersect(has, roles), {
             message: `Insufficient permission. Accept: ${accept} code:insufficient_permission`,
-            accepts: permissions,
+            accepts: roles,
           })
         } else {
-          return util.intersect(has, permissions)
+          return util.intersect(has, roles)
         }
       },
     }
@@ -255,29 +218,12 @@ rio.monitor = () => {
   }
 }
 
-rio.default = () => {
-  const router = Router()
-
-  router.get('/_status', async (req, res, next) => {
-    const data = {
-      service: config.service,
-      env: config.env,
-    }
-
-    if (await req.auth.or('ruler monitoring', false)) {
-      data.config = config
-    }
-
-    return res.success(data)
-  })
-
-  router.use('/in/query', query())
-
-  return router
-}
-
 rio.cors = () => {
   return (req, res, next) => {
+    if (!config.cors_origin) {
+      return next()
+    }
+
     const origins = config.cors_origin.split(',')
 
     if (config.cors_origin === '*') {

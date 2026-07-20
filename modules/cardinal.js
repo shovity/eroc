@@ -66,8 +66,8 @@ cardinal.setup = async (middle) => {
   // Monitor
   config.rio_monitor && app.use(rio.monitor())
 
-  // Add _status api
-  app.use(path.join('/', config.router_prefix || config.service), rio.default())
+  // Add k8s health probes at root (livez/readyz/healthz), bypass auth
+  app.use(require('./health').router())
 
   app.use(vanguard.detect())
   app.use(vanguard.supervise())
@@ -76,6 +76,9 @@ cardinal.setup = async (middle) => {
 
   await cardinal.seek()
   await cardinal.monitoring()
+
+  // Auto-migrate Postgres schema before serving traffic (fail-fast)
+  await require('./migrate').run()
 
   // Catch 404 route
   app.use((req, res, next) => {
@@ -178,7 +181,7 @@ cardinal.boot = async () => {
             console.info('mongo: 🍱 Disconnected')
           })
 
-          console.info(`mongo: 🍱 Connected - ${config.mongo_uri}`)
+          console.info(`mongo: 🍱 Connected - ${util.maskUri(config.mongo_uri)}`)
         })
         .catch((error) => {
           console.error(error)
@@ -190,12 +193,26 @@ cardinal.boot = async () => {
     connect()
   }
 
+  if (config.postgres_uri) {
+    const sequelize = require('./sequelize')
+    const db = sequelize.connect()
+
+    // Await: migration later in setup() needs a live connection; fail-fast on bad config.
+    await db.authenticate()
+    console.info(`postgres: 🐘 Connected - ${util.maskUri(config.postgres_uri)}`)
+
+    cardinal.teardown(async () => {
+      await db.close()
+      console.info('postgres: 🐘 Disconnected')
+    })
+  }
+
   if (config.enable_teardown) {
     for (const type of ['uncaughtException']) {
       process.on(type, async () => {
         try {
           await cardinal.shutdown()
-        } catch (_) {
+        } catch {
           process.exit(1)
         }
       })

@@ -1,6 +1,6 @@
-const fetch = require('node-fetch')
 const config = require('./config')
 const tx = require('./tx')
+const internal = require('./internal')
 
 const request = {}
 
@@ -8,17 +8,11 @@ request.fetch = ({ url, method, body, param, option }) => {
   option = Object.assign(
     {
       parse: 'json',
-      // timeout: 30000,
-      // formData: false,
-      // header: {},
     },
     option,
   )
 
   const arg = {
-    // defaut node-fetch option
-    // https://www.npmjs.com/package/node-fetch#options
-
     method,
     headers: {
       ...option.header,
@@ -43,8 +37,11 @@ request.fetch = ({ url, method, body, param, option }) => {
 
     const service = url.split('/')[0]
 
-    url = `http://${config.request_base || service}:3000/${url}`
-    arg.headers['client'] = config.client
+    // Sign the request so the callee can authenticate it without a shared
+    // secret ever appearing on the wire. Path must match what vanguard rebuilds.
+    Object.assign(arg.headers, internal.headers({ method, path: `/${url}` }))
+
+    url = `http://${config.internal_request_base || service}:3000/${url}`
   }
 
   if (body) {

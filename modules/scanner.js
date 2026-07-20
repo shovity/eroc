@@ -30,7 +30,7 @@ scanner.router = async (dir) => {
     const matchs = path.slice(resolve(dir).length).split('/')
 
     if (typeof handle !== 'function') {
-      console.warn(`eroc - warn: router not a function - ${path}`)
+      console.warn(`core - warn: router not a function - ${path}`)
       continue
     }
 

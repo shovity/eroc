@@ -1,2 +1,4 @@
 .*
-test
+*.spec.js
+CLAUDE.md
+yarn.lock

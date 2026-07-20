@@ -101,7 +101,7 @@ const prepare = (data) => {
         data.path = path.split(`${config.app_dir}/`).slice(1).join('').split('.')[0]
         break
       }
-    } catch (error) {
+    } catch {
       console.error('logger: extract path failed:', Error())
     }
   }

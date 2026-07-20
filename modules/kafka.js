@@ -1,4 +1,4 @@
-const { Kafka, logLevel, Partitioners, CompressionTypes } = require('kafkajs')
+const { Kafka, logLevel, Partitioners } = require('kafkajs')
 const config = require('./config')
 const util = require('./util')
 const cardinal = require('./cardinal')
@@ -25,9 +25,22 @@ const boot = async () => {
     'Missing config.kafka_broker_uri and config.kafka_broker_config',
   )
 
+  // Build SASL config from config (set by service config.js from env).
+  // Internal access via docker network needs no auth; external access via IP does.
+  const brokerConfig = { ...config.kafka_broker_config }
+
+  if (config.kafka_sasl_username) {
+    brokerConfig.ssl = config.kafka_ssl ?? false
+    brokerConfig.sasl = {
+      mechanism: config.kafka_sasl_mechanism || 'plain',
+      username: config.kafka_sasl_username,
+      password: config.kafka_sasl_password,
+    }
+  }
+
   kafka.client = new Kafka({
     clientId: config.service,
-    brokers: config.kafka_broker_uri.split(','),
+    brokers: config.kafka_broker_uri ? config.kafka_broker_uri.split(',') : [],
     logLevel: logLevel.ERROR,
     logCreator: logger,
 
@@ -35,7 +48,7 @@ const boot = async () => {
       initialRetryTime: 200,
       retries: 100,
     },
-    ...config.kafka_broker_config,
+    ...brokerConfig,
   })
 
   kafka.producer = kafka.client.producer({
@@ -58,22 +71,31 @@ const boot = async () => {
   })
 
   kafka.ready.resolve()
-  console.info(`kafka: 🚕 Connected - ${config.kafka_broker_uri}`)
+  console.info(`kafka: 🚕 Connected - ${util.maskUri(config.kafka_broker_uri)}`)
 }
 
-kafka.pub = async (topic, message, key) => {
+kafka.pub = async (topic, message, key, tries = 1) => {
   await kafka.ready
 
-  await kafka.producer.send({
-    topic,
-    compression: CompressionTypes.GZIP,
-    messages: [
-      {
-        key: JSON.stringify(key),
-        value: JSON.stringify(message),
-      },
-    ],
-  })
+  try {
+    await kafka.producer.send({
+      topic,
+      messages: [
+        {
+          key,
+          value: JSON.stringify(message),
+        },
+      ],
+    })
+  } catch (error) {
+    if (tries > 3) {
+      console.error(`kafka: producer send error, topic=${topic}`, error)
+      return
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100 * tries))
+    return await kafka.pub(topic, message, key, tries + 1)
+  }
 }
 
 /**
@@ -106,7 +128,7 @@ kafka.sub = async (topic, handle, option, tries = 1) => {
 
   const consumer = kafka.client.consumer({
     groupId: option.group,
-    sessionTimeout: 300000,
+    sessionTimeout: 900000,
     retry: {
       retries: option.retry,
 
@@ -137,7 +159,8 @@ kafka.sub = async (topic, handle, option, tries = 1) => {
 
         try {
           for (const message of batch.messages) {
-            await handle(JSON.parse(message.value.toString()), { topic, message })
+            const value = message.value ? JSON.parse(message.value.toString()) : null
+            await handle(value, { topic, message })
             resolveOffset(message.offset)
             await commitOffsetsIfNecessary()
           }
@@ -151,7 +174,7 @@ kafka.sub = async (topic, handle, option, tries = 1) => {
   } catch (error) {
     delete kafka.consumer[topic]
 
-    if (tries > 5) {
+    if (tries > 3) {
       throw error
     }
 
